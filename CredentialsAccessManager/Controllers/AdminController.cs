@@ -33,5 +33,4 @@ public class AdminController : ControllerBase
         SessionStore = sessionStore;
     }
 
-
 }

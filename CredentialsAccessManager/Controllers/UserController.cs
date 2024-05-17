@@ -2,9 +2,7 @@ using AuthProvider;
 using CredentialsAccessManager.Models;
 using CredentialsAccessManager.Session;
 using CredentialsAccessManager.User;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Net.Http.Headers;
 
 /*
 <> stands for authentication, string inside is the Permission nessesary
@@ -48,15 +46,7 @@ public class UserController : ControllerBase
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public IActionResult CreateAccount([FromBody] UserCredentials userCredentials)
-    {
-        if (UserStore.CreateUser(userCredentials.Username, userCredentials.Password, new UserInformation()))
-        {
-            return Ok();
-        }
-
-        return Conflict();
-    }
+    public IActionResult CreateAccount([FromBody] UserCredentials userCredentials) => UserStore.CreateUser(userCredentials.Username, userCredentials.Password, new UserInformation()) ? Ok() : Conflict();
 
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -68,10 +58,10 @@ public class UserController : ControllerBase
         {
             if (UserStore.HasPermission(userId, RegistrationService.Service, Permission.LOGIN))
             {
-                var session = SessionStore.CreateNewSession(userId);
+                SessionCredentials session = SessionStore.CreateNewSession(userId);
 
                 SessionCookieUtils.AttachSession(Response, session);
-                
+
                 return Ok();
             }
 
@@ -86,7 +76,7 @@ public class UserController : ControllerBase
     [CustomAuthorization]
     public IActionResult Logout()
     {
-        var session = GetSession();
+        SessionCredentials session = GetSession();
         SessionStore.RevokeSession(session.UserId, session.SessionId);
         SessionCookieUtils.RemoveSession(Response);
         return Ok();
@@ -97,59 +87,41 @@ public class UserController : ControllerBase
     [CustomAuthorization]
     public IActionResult LogoutAll()
     {
-        var session = GetSession();
+        SessionCredentials session = GetSession();
         SessionStore.RevokeAllSessions(session.UserId);
         SessionCookieUtils.RemoveSession(Response);
         return Ok();
     }
-    
-    [HttpPost]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [CustomAuthorization(Permission.WRITE_SELF)]
-    public IActionResult UpdateUsername()
-    {
-        throw new NotImplementedException();
-    }
 
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [CustomAuthorization(Permission.WRITE_SELF)]
-    public IActionResult UpdatePassword()
-    {
-        throw new NotImplementedException();
-    }
+    public IActionResult UpdateUsername() => throw new NotImplementedException();
 
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [CustomAuthorization(Permission.WRITE_SELF)]
-    public IActionResult UpdateUserInfo()
-    {
-        throw new NotImplementedException();
-    }
+    public IActionResult UpdatePassword() => throw new NotImplementedException();
+
+    [HttpPost]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [CustomAuthorization(Permission.WRITE_SELF)]
+    public IActionResult UpdateUserInfo() => throw new NotImplementedException();
 
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [CustomAuthorization(Permission.READ_SELF)]
-    public IActionResult GetActiveSessions()
-    {
-        throw new NotImplementedException();
-    }
+    public IActionResult GetActiveSessions() => throw new NotImplementedException();
 
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [CustomAuthorization(Permission.READ_SELF)]
-    public IActionResult GetUserInfo()
-    {
-        throw new NotImplementedException();
-    }
+    public IActionResult GetUserInfo() => throw new NotImplementedException();
 
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [CustomAuthorization(Permission.READ_SELF)]
-    public IActionResult GetPermissions()
-    {
-        throw new NotImplementedException();
-    }
+    public IActionResult GetPermissions() => throw new NotImplementedException();
 
     [NonAction]
     public AuthProvider.SessionCredentials GetSession() => HttpContext.Features.Get<AuthProvider.SessionCredentials>();

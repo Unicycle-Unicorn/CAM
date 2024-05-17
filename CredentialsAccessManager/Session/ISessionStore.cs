@@ -1,6 +1,4 @@
-﻿using System.Net;
-
-namespace CredentialsAccessManager.Session;
+﻿namespace CredentialsAccessManager.Session;
 
 public interface ISessionStore
 {

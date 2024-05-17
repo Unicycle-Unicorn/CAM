@@ -22,5 +22,5 @@ public class NullAuthenticationHandler : AuthenticationHandler<AuthenticationSch
         options.AddScheme<NullAuthenticationHandler>(Name, DisplayName);
     }
 
-    protected override AuthenticateResult HandleAuthenticate() => AuthenticateResult.NoResult();
+    protected override async Task<AuthenticateResult> HandleAuthenticateAsync() => AuthenticateResult.NoResult();
 }

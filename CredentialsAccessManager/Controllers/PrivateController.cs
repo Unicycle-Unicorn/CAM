@@ -22,7 +22,7 @@ public class PrivateController : ControllerBase
     [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
     public IActionResult GetUsernameFromUserId([FromBody] Guid userId)
     {
-        var username = UserStore.GetUsernameFromUserId(userId);
+        string? username = UserStore.GetUsernameFromUserId(userId);
 
         return username == null ? NotFound() : Ok(username);
     }
@@ -32,7 +32,7 @@ public class PrivateController : ControllerBase
     [ProducesResponseType(typeof(Guid), StatusCodes.Status200OK)]
     public IActionResult GetUserIdFromUsername([FromBody] string username)
     {
-        var userId = UserStore.GetUserIdFromUsername(username);
+        Guid? userId = UserStore.GetUserIdFromUsername(username);
 
         return userId == null ? NotFound() : Ok(userId);
     }

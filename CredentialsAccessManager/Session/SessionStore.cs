@@ -1,9 +1,7 @@
-﻿using CredentialsAccessManager.Session;
-using System.Collections.Concurrent;
-using System.Net;
+﻿using System.Collections.Concurrent;
 using System.Security.Cryptography;
 
-namespace CredentialsAccessManager;
+namespace CredentialsAccessManager.Session;
 
 public class SessionStore : ISessionStore
 {
@@ -23,8 +21,9 @@ public class SessionStore : ISessionStore
     /// <returns>Bool representing if this Session is valid</returns>
     public bool AuthenticateSession(Guid userId, string sessionId)
     {
-        if (Sessions.TryGetValue(userId, out var userActiveSessions)) {
-            if (userActiveSessions.TryGetValue(sessionId, out var activeSession))
+        if (Sessions.TryGetValue(userId, out Dictionary<string, ActiveSession>? userActiveSessions))
+        {
+            if (userActiveSessions.TryGetValue(sessionId, out ActiveSession? activeSession))
             {
                 long currentTime = Utils.GetUnixTime();
 
@@ -59,14 +58,15 @@ public class SessionStore : ISessionStore
         long currentTime = Utils.GetUnixTime();
         var newSession = new ActiveSession(currentTime, currentTime + ISessionStore.SESSION_IDLE_TIMEOUT_SECONDS, currentTime + ISessionStore.SESSION_ABSOLUTE_TIMEOUT_SECONDS);
 
-        if (Sessions.TryGetValue(userId, out var userSessions))
+        if (Sessions.TryGetValue(userId, out Dictionary<string, ActiveSession>? userSessions))
         {
             // User already exists in map
             userSessions.Add(sessionId, newSession);
-        } else
+        }
+        else
         {
             // User not yet present in map
-            _ = Sessions.TryAdd(userId, new() {{sessionId, newSession}});
+            _ = Sessions.TryAdd(userId, new() { { sessionId, newSession } });
         }
 
         return new AuthProvider.SessionCredentials() { UserId = userId, SessionId = sessionId };
@@ -76,10 +76,7 @@ public class SessionStore : ISessionStore
     /// Revokes all sessions belonging to a specific user <b>Global Sign Out</b>
     /// </summary>
     /// <param name="userId">User id of the requesting user</param>
-    public void RevokeAllSessions(Guid userId)
-    {
-        _ = Sessions.Remove(userId, out _);
-    }
+    public void RevokeAllSessions(Guid userId) => _ = Sessions.Remove(userId, out _);
 
     /// <summary>
     /// Revokes specific sessions belonging to a specific user. <b>Session Sign Out</b>
@@ -88,9 +85,7 @@ public class SessionStore : ISessionStore
     /// <param name="sessionId">Session id of the Session to be revoked</param>
     public void RevokeSession(Guid userId, string sessionId)
     {
-        if (Sessions.TryGetValue(userId, out var activeSessions))
-        {
+        if (Sessions.TryGetValue(userId, out Dictionary<string, ActiveSession>? activeSessions))
             activeSessions.Remove(sessionId);
-        }
     }
 }

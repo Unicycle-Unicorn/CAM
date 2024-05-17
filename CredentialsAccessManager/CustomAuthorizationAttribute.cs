@@ -23,16 +23,17 @@ public class CustomAuthorizationAttribute : Attribute, IAuthorizationFilter//, I
 
     public void OnAuthorization(AuthorizationFilterContext context)
     {
-        
-        if (SessionCookieUtils.AttemptQuerySession(context.HttpContext.Request, out var session)) {
-            var SessionStore = context.HttpContext.RequestServices.GetService<ISessionStore>()!;
+
+        if (SessionCookieUtils.AttemptQuerySession(context.HttpContext.Request, out SessionCredentials? session))
+        {
+            ISessionStore SessionStore = context.HttpContext.RequestServices.GetService<ISessionStore>()!;
             if (SessionStore.AuthenticateSession(session.UserId, session.SessionId))
             {
                 context.HttpContext.Features.Set(session);
                 // Session is valid - check authorization now too
                 if (Permission != null)
                 {
-                    var UserStore = context.HttpContext.RequestServices.GetService<IUserStore>()!;
+                    IUserStore UserStore = context.HttpContext.RequestServices.GetService<IUserStore>()!;
 
                     if (!UserStore.HasPermission(session.UserId, RegistrationService.Service, Permission))
                     {
@@ -51,7 +52,7 @@ public class CustomAuthorizationAttribute : Attribute, IAuthorizationFilter//, I
         // Session failed to authenticate
         context.Result = new UnauthorizedResult();
         return;
-        
+
     }
 
     //public Task OnAuthorizationAsync(AuthorizationFilterContext context) => throw new NotImplementedException();
