@@ -1,4 +1,8 @@
 
+using AuthProvider;
+using CredentialsAccessManager.Session;
+using CredentialsAccessManager.User;
+
 namespace CredentialsAccessManager;
 
 public class Program
@@ -14,6 +18,11 @@ public class Program
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
 
+        builder.Services.AddAuthentication(NullAuthenticationHandler.RegisterWithBuilder);
+
+        builder.Services.AddSingleton(typeof(IUserStore), new UserStore());
+        builder.Services.AddSingleton(typeof(ISessionStore), new SessionStore());
+
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.
@@ -26,6 +35,9 @@ public class Program
         app.UseAuthorization();
 
         app.MapControllers();
+
+        RegistrationService.RegisterPermission(Permission.LOGIN);
+        RegistrationService.RegisterService("CAM");
 
         app.Run();
     }
