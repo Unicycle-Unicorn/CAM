@@ -4,13 +4,14 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build-env
 # Set the working directory in the container
 WORKDIR /app
 
-# Copy the remaining source code
-COPY . ./
-
 # Copy the .NET project file and restore dependencies
-COPY *.csproj ./
+COPY *.sln ./
+COPY CredentialsAccessManager/*.csproj ./CredentialsAccessManager/
+COPY AuthProvider/*.csproj ./AuthProvider/
 RUN dotnet restore
 
+# Copy the remaining source code
+COPY . ./
 # Build the application
 RUN dotnet publish -c Release -o out
 
