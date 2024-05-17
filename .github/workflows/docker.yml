@@ -1,0 +1,13 @@
+name: Docker Image Push
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build_and_push_image:
+    uses: Unicycle-Unicorn/CICD/.github/workflows/docker-build-push.yml@main
+    with:
+      subdirectory: 'CredentialsAccessManager'
