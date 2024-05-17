@@ -1,21 +1,27 @@
-FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS base
-USER app
+# Use the .NET 8.0 SDK image as base
+FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build-env
+
+# Set the working directory in the container
 WORKDIR /app
 
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-ARG BUILD_CONFIGURATION=Release
-WORKDIR /src
-COPY ["CredentialsAccessManager/CredentialsAccessManager.csproj", "CredentialsAccessManager/"]
-RUN dotnet restore "./CredentialsAccessManager/CredentialsAccessManager.csproj"
-COPY . .
-WORKDIR "/src/CredentialsAccessManager"
-RUN dotnet build "./CredentialsAccessManager.csproj" -c $BUILD_CONFIGURATION -o /app/build
+# Copy the .NET project file and restore dependencies
+COPY *.csproj ./
+RUN dotnet restore
 
-FROM build AS publish
-ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./CredentialsAccessManager.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+# Copy the remaining source code
+COPY . ./
 
-FROM base AS final
+# Build the application
+RUN dotnet publish -c Release -o out
+
+# Runtime image
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine
+
+# Set the working directory for the runtime
 WORKDIR /app
-COPY --from=publish /app/publish .
+
+# Copy the build output from the previous stage
+COPY --from=build-env /app/out .
+
+# Command to run the application
 ENTRYPOINT ["dotnet", "CredentialsAccessManager.dll"]
