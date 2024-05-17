@@ -124,5 +124,5 @@ public class UserController : ControllerBase
     public IActionResult GetPermissions() => throw new NotImplementedException();
 
     [NonAction]
-    public AuthProvider.SessionCredentials GetSession() => HttpContext.Features.Get<AuthProvider.SessionCredentials>();
+    public SessionCredentials GetSession() => HttpContext.Features.Get<SessionCredentials>();
 }
