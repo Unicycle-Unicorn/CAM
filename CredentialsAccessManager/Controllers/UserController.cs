@@ -42,6 +42,12 @@ public class UserController : ControllerBase
         SessionStore = sessionStore;
     }
 
+    [HttpGet]
+    public IActionResult TestGet()
+    {
+        return Ok();
+    }
+
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
