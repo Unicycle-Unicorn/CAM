@@ -9,3 +9,5 @@ on:
 jobs:
   build_and_push_image:
     uses: Unicycle-Unicorn/CICD/.github/workflows/docker-build-push.yml@main
+    with:
+      sub-directory: CredentialsAccessManager
