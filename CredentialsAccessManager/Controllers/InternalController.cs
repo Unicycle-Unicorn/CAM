@@ -6,15 +6,21 @@ using Microsoft.AspNetCore.Mvc;
 namespace CredentialsAccessManager.Controllers;
 [ApiController]
 [Route("[controller]/[action]")]
-public class PrivateController : ControllerBase
+public class InternalController : ControllerBase
 {
     private readonly IUserStore UserStore;
     private readonly ISessionStore SessionStore;
 
-    public PrivateController(IUserStore userStore, ISessionStore sessionStore)
+    public InternalController(IUserStore userStore, ISessionStore sessionStore)
     {
         UserStore = userStore;
         SessionStore = sessionStore;
+    }
+
+    [HttpGet]
+    public IActionResult TestGet()
+    {
+        return Ok();
     }
 
     [HttpPost]
