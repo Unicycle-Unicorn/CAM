@@ -2,6 +2,16 @@
 
 public class ActiveSession
 {
+    
+    private static readonly Random random = new();
+    public static int GetInsecureRandomId()
+    {
+        lock (random) // synchronize
+        {
+            return random.Next();
+        }
+    }
+
     /// <summary>
     /// Creation time of this Session
     /// </summary>
@@ -17,11 +27,17 @@ public class ActiveSession
     /// </summary>
     public long AbsoluteExpiryTime { get; set; }
 
+    /// <summary>
+    /// Internal session identifier - this way hashes are not needed
+    /// </summary>
+    public int InternalSessionId { get; }
+
     public ActiveSession(long currentTime, long idleExpiryTime, long absoluteExpiryTime)
     {
         CreationTime = currentTime;
         IdleExpiryTime = idleExpiryTime;
         AbsoluteExpiryTime = absoluteExpiryTime;
+        InternalSessionId = GetInsecureRandomId();
     }
 
     /// <summary>
