@@ -27,7 +27,7 @@ public class CredentialStore : ICredentialStore
     }
 
     #region User
-    public bool TryCreateUser(Username username, Password password)
+    public bool CreateUser(Username username, Password password)
     {
         if (UsernamesToUserIds.ContainsKey(username)) return false;
         UserId newUserId = UserId.NewGuid();
@@ -41,7 +41,7 @@ public class CredentialStore : ICredentialStore
         _ = UserIdsToUserData.TryAdd(newUserId, newUserData);
         return true;
     }
-    public AuthorizationResult AttemptAuthenticateCredentials(Username username, Password password)
+    public AuthorizationResult AuthenticateCredentials(Username username, Password password)
     {
         if (UsernamesToUserIds.TryGetValue(username, out UserId userId))
         {
@@ -54,7 +54,7 @@ public class CredentialStore : ICredentialStore
         }
         return AuthorizationResult.Failed();
     }
-    public AuthorizationResult AttemptAuthorizeCredentials(Username username, Password password, SinglePermission permission)
+    public AuthorizationResult AuthorizeCredentials(Username username, Password password, SinglePermission permission)
     {
         if (UsernamesToUserIds.TryGetValue(username, out UserId userId))
         {
@@ -72,20 +72,23 @@ public class CredentialStore : ICredentialStore
         }
         return AuthorizationResult.Failed();
     }
-    public bool TryGetUserIdFromUsername(Username username, [NotNullWhen(true)] out UserId userId)
+    public UserActionResult<UserId> GetUserIdFromUsername(Username username)
     {
-        return (UsernamesToUserIds.TryGetValue(username, out userId));
+        if (UsernamesToUserIds.TryGetValue(username, out UserId userId))
+        {
+            return UserActionResult<UserId>.Successfull(userId);
+        }
+        
+        return UserActionResult<UserId>.UserNotFound();
     }
-    public bool TryGetUsernameFromUserId(UserId userId, [NotNullWhen(true)] out Username? username)
+    public UserActionResult<Username> GetUsernameFromUserId(UserId userId)
     {
         if (UserIdsToUserData.TryGetValue(userId, out UserData? userData) && userData != null)
         {
-            username = userData.Username;
-            return true;
+            return UserActionResult<Username>.Successfull(userData.Username);
         }
 
-        username = null;
-        return false;
+        return UserActionResult<Username>.UserNotFound();
     }
     // public bool TryGetUserPermissions(UserId userId, [NotNullWhen(true)] out Permissions? username);
     // public bool GrantUserPermission(UserId userId, Permission permission);
@@ -98,7 +101,7 @@ public class CredentialStore : ICredentialStore
 
 
     #region Session
-    public bool TryCreateNewSession(UserId userId, [NotNullWhen(true)] out SessionId? sessionId)
+    public bool CreateNewSession(UserId userId, [NotNullWhen(true)] out SessionId? sessionId)
     {
         (string userCompatibleId, byte[] databaseCompatibleId) = Configuration.SessionIdGenerator.GenerateId(userId);
         long currentTime = Utils.GetUnixTime();
@@ -120,7 +123,7 @@ public class CredentialStore : ICredentialStore
         sessionId = null;
         return false;
     }
-    public AuthorizationResult AttemptAuthenticateSession(SessionId sessionId)
+    public AuthorizationResult AuthenticateSession(SessionId sessionId)
     {
         if (Configuration.SessionIdGenerator.TryParseId(sessionId, out (UserId userId, HashedSessionId databaseCompatibleId)? parsedId) && parsedId.HasValue)
         {
@@ -145,7 +148,7 @@ public class CredentialStore : ICredentialStore
 
         return AuthorizationResult.Failed();
     }
-    public AuthorizationResult AttemptAuthorizeSession(SessionId sessionId, SinglePermission permission)
+    public AuthorizationResult AuthorizeSession(SessionId sessionId, SinglePermission permission)
     {
         if (Configuration.SessionIdGenerator.TryParseId(sessionId, out (UserId userId, HashedSessionId databaseCompatibleId)? parsedId) && parsedId.HasValue)
         {
@@ -177,7 +180,7 @@ public class CredentialStore : ICredentialStore
 
         return AuthorizationResult.Failed();
     }
-    public AuthorizationResult AttemptAuthenticateStrictSession(SessionId sessionId, Password password)
+    public AuthorizationResult AuthenticateStrictSession(SessionId sessionId, Password password)
     {
         if (Configuration.SessionIdGenerator.TryParseId(sessionId, out (UserId userId, HashedSessionId databaseCompatibleId)? parsedId) && parsedId.HasValue)
         {
@@ -207,7 +210,7 @@ public class CredentialStore : ICredentialStore
 
         return AuthorizationResult.Failed();
     }
-    public AuthorizationResult AttemptAuthorizeStrictSession(SessionId sessionId, Password password, SinglePermission permission)
+    public AuthorizationResult AuthorizeStrictSession(SessionId sessionId, Password password, SinglePermission permission)
     {
         if (Configuration.SessionIdGenerator.TryParseId(sessionId, out (UserId userId, HashedSessionId databaseCompatibleId)? parsedId) && parsedId.HasValue)
         {
@@ -297,7 +300,7 @@ public class CredentialStore : ICredentialStore
 
         return false;
     }
-    public bool TryGetAllSessions(UserId userId, [NotNullWhen(true)] out List<ActiveSession>? sessions)
+    public bool GetAllSessions(UserId userId, [NotNullWhen(true)] out List<ActiveSession>? sessions)
     {
         if (UserIdsToUserData.TryGetValue(userId, out UserData? userData) && userData?.Sessions != null)
         {
@@ -312,7 +315,7 @@ public class CredentialStore : ICredentialStore
 
 
     #region ApiKey
-    public bool TryCreateNewApiKey(UserId userId, Permissions permissions, [NotNullWhen(true)] out ApiKeyId? apiKeyid)
+    public bool CreateNewApiKey(UserId userId, Permissions permissions, [NotNullWhen(true)] out ApiKeyId? apiKeyid)
     {
         (string userCompatibleId, byte[] databaseCompatibleId) = Configuration.ApiKeyIdGenerator.GenerateId(userId);
 
@@ -339,7 +342,7 @@ public class CredentialStore : ICredentialStore
         apiKeyid = null;
         return false;
     }
-    public AuthorizationResult AttemptAuthenticateApiKey(ApiKeyId apiKeyId)
+    public AuthorizationResult AuthenticateApiKey(ApiKeyId apiKeyId)
     {
         if (Configuration.ApiKeyIdGenerator.TryParseId(apiKeyId, out (UserId userId, HashedApiKeyId databaseCompatibleId)? parsedId) && parsedId.HasValue)
         {
@@ -358,7 +361,7 @@ public class CredentialStore : ICredentialStore
 
         return AuthorizationResult.Failed();
     }
-    public AuthorizationResult AttemptAuthorizeApiKey(ApiKeyId apiKeyId, SinglePermission permission)
+    public AuthorizationResult AuthorizeApiKey(ApiKeyId apiKeyId, SinglePermission permission)
     {
         if (Configuration.ApiKeyIdGenerator.TryParseId(apiKeyId, out (UserId userId, HashedApiKeyId databaseCompatibleId)? parsedId) && parsedId.HasValue)
         {
@@ -425,7 +428,7 @@ public class CredentialStore : ICredentialStore
 
         return false;
     }
-    public bool TryGetAllApiKeys(UserId userId, [NotNullWhen(true)] out List<ApiKey>? apiKeys)
+    public bool GetAllApiKeys(UserId userId, [NotNullWhen(true)] out List<ApiKey>? apiKeys)
     {
         if (UserIdsToUserData.TryGetValue(userId, out UserData? userData) && userData?.ApiKeys != null)
         {
