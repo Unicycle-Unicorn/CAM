@@ -1,14 +1,15 @@
-﻿namespace CredentialsAccessManager.Credentials;
+﻿namespace AuthProvider.CamInterface;
 
 public class UserActionResult
 {
-    public bool FoundUser { get; set; }
+    public bool FoundUser { get; protected set; }
 
-    public bool OperationSuccess { get; set; }
+    public bool OperationSuccess { get; protected set; }
 
     public static UserActionResult UserNotFound()
     {
-        return new UserActionResult { 
+        return new UserActionResult
+        {
             FoundUser = false,
             OperationSuccess = false,
         };
@@ -35,7 +36,7 @@ public class UserActionResult
 
 public class UserActionResult<T> : UserActionResult
 {
-    public T Output { get; set; }
+    public T Output { get; protected set; }
 
     public static UserActionResult<T> UserNotFound()
     {
@@ -47,7 +48,7 @@ public class UserActionResult<T> : UserActionResult
         };
     }
 
-    public static UserActionResult<T> Unsucessfull()
+    public static UserActionResult<T> Unsuccessful()
     {
         return new UserActionResult<T>
         {
@@ -57,7 +58,7 @@ public class UserActionResult<T> : UserActionResult
         };
     }
 
-    public static UserActionResult<T> Successfull(T output)
+    public static UserActionResult<T> Successful(T output)
     {
         return new UserActionResult<T>
         {

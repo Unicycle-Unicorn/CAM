@@ -1,4 +1,6 @@
+using AuthProvider.CamInterface;
 using CredentialsAccessManager.Credentials;
+using CredentialsAccessManager.Credentials.CredentialStore;
 using CredentialsAccessManager.Credentials.IdGenerators;
 using CredentialsAccessManager.Credentials.PasswordHashing;
 
@@ -19,7 +21,7 @@ public class TestCredentialStore
             DefaultUserPermissions = new Permissions(new() {
                 { service_cam, [permission_login, permission_write] }
             }),
-            SessionIdleTimeoutSeconds = 5, // 2 second idle timeout
+            SessionIdleTimeoutSeconds = 2, // 2 second idle timeout
             SessionAbsoluteTimeoutSeconds = 5, // 5 second absolute timeout
             PasswordHasher = new PasswordHasher(new()),
             ApiKeyIdGenerator = new IdGenerator(new()
@@ -40,8 +42,8 @@ public class TestCredentialStore
     {
         string username = "new user";
 
-        bool created = CredentialStore.CreateUser(username, "some password");
-        Assert.True(created);
+        UserActionResult<Guid> created = CredentialStore.CreateUser(username, "some password");
+        created.AssertSuccessfull();
 
         UserActionResult<Guid> getIdResult = CredentialStore.GetUserIdFromUsername(username);
         getIdResult.AssertSuccessfull();
@@ -56,38 +58,38 @@ public class TestCredentialStore
     {
         string username = "new user";
 
-        bool created = CredentialStore.CreateUser(username, "some password");
-        Assert.True(created);
+        UserActionResult<Guid> created = CredentialStore.CreateUser(username, "some password");
+        created.AssertSuccessfull();
 
         created = CredentialStore.CreateUser(username, "some other password");
-        Assert.False(created);
+        created.AssertUnsuccessfull();
     }
 
     [Fact]
     public void CreateSimpleUserWithDistinctUsername()
     {
-        bool created = CredentialStore.CreateUser("new user", "some password");
-        Assert.True(created);
+        UserActionResult<Guid> created = CredentialStore.CreateUser("new user", "some password");
+        created.AssertSuccessfull();
 
         created = CredentialStore.CreateUser("some other new user", "some other password");
-        Assert.True(created);
+        created.AssertSuccessfull();
     }
 
     [Fact]
     public void CreateSimpleUserWithSameUsernameDifferentCase()
     {
-        bool created = CredentialStore.CreateUser("new user", "some password");
-        Assert.True(created);
+        UserActionResult<Guid> created = CredentialStore.CreateUser("new user", "some password");
+        created.AssertSuccessfull();
 
         created = CredentialStore.CreateUser("nEw User", "some other password");
-        Assert.False(created);
+        created.AssertUnsuccessfull();
     }
 
     [Fact]
     public void AuthenticateWithPasswordDifferentCase()
     {
-        bool created = CredentialStore.CreateUser("new user", "some password");
-        Assert.True(created);
+        UserActionResult<Guid> created = CredentialStore.CreateUser("new user", "some password");
+        created.AssertSuccessfull();
 
         AuthorizationResult result = CredentialStore.AuthenticateCredentials("neW user", "some password");
 
@@ -99,12 +101,13 @@ public class TestCredentialStore
     [Fact]
     public void AuthorizeWithPasswordHasPermission()
     {
-        bool created = CredentialStore.CreateUser("new user", "some password");
-        Assert.True(created);
+        UserActionResult<Guid> created = CredentialStore.CreateUser("new user", "some password");
+        created.AssertSuccessfull();
 
         AuthorizationResult result = CredentialStore.AuthorizeCredentials("new user", "some password", (service_cam, permission_login));
 
         UserActionResult<Guid> getIdResult = CredentialStore.GetUserIdFromUsername("new user");
+        
         getIdResult.AssertSuccessfull();
         result.AssertAuthorized(getIdResult.Output, (service_cam, permission_login));
     }
@@ -112,8 +115,8 @@ public class TestCredentialStore
     [Fact]
     public void AuthorizeWithPasswordNoPermission()
     {
-        bool created = CredentialStore.CreateUser("new user", "some password");
-        Assert.True(created);
+        UserActionResult<Guid> created = CredentialStore.CreateUser("new user", "some password");
+        created.AssertSuccessfull();
 
         AuthorizationResult result = CredentialStore.AuthorizeCredentials("new user", "some password", (service_cam, "random_perm"));
 
@@ -125,8 +128,8 @@ public class TestCredentialStore
     [Fact]
     public void AuthorizeWithPasswordNoService()
     {
-        bool created = CredentialStore.CreateUser("new user", "some password");
-        Assert.True(created);
+        UserActionResult<Guid> created = CredentialStore.CreateUser("new user", "some password");
+        created.AssertSuccessfull();
 
         AuthorizationResult result = CredentialStore.AuthorizeCredentials("new user", "some password", ("no", permission_login));
         
@@ -138,8 +141,8 @@ public class TestCredentialStore
     [Fact]
     public void AuthenticateWithPasswordFail()
     {
-        bool created = CredentialStore.CreateUser("new user", "some password");
-        Assert.True(created);
+        UserActionResult<Guid> created = CredentialStore.CreateUser("new user", "some password");
+        created.AssertSuccessfull();
 
         AuthorizationResult result = CredentialStore.AuthenticateCredentials("new user", "some passwords");
         result.AssertAnonomyous();
@@ -148,9 +151,9 @@ public class TestCredentialStore
     [Fact]
     public void AuthorizeWithPasswordFail()
     {
-        bool created = CredentialStore.CreateUser("new user", "some password");
-        Assert.True(created);
-        
+        UserActionResult<Guid> created = CredentialStore.CreateUser("new user", "some password");
+        created.AssertSuccessfull();
+
         AuthorizationResult result = CredentialStore.AuthorizeCredentials("new user", "some passwords", (service_cam, permission_login));
         result.AssertAnonomyous();
     }
@@ -183,7 +186,7 @@ internal static class UserActionResultExtensions
     {
         Assert.True(result.FoundUser);
         Assert.False(result.OperationSuccess);
-        Assert.Null(result.Output);
+        Assert.Equal(default(T), result.Output);
     }
 
     internal static void AssertSuccessfull(this UserActionResult result)

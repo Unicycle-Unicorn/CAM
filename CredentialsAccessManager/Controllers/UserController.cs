@@ -62,7 +62,7 @@ public class UserController : ControllerBase
     {
         if (UserStore.AttemptLogin(userCredentials.Username, userCredentials.Password, out Guid userId))
         {
-            if (UserStore.HasPermission(userId, RegistrationService.Service, Permission.LOGIN))
+            if (UserStore.HasPermission(userId, CamService.Service, Permission.LOGIN))
             {
                 SessionCredentials session = SessionStore.CreateNewSession(userId);
 

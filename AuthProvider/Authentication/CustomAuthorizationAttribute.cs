@@ -1,26 +1,43 @@
-﻿using AuthProvider;
-using CredentialsAccessManager.Session;
-using CredentialsAccessManager.User;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
+﻿using AuthProvider.Authentication;
 
-namespace CredentialsAccessManager;
+namespace AuthProvider;
 
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
-public class CustomAuthorizationAttribute : Attribute, IAuthorizationFilter//, IAsyncAuthorizationFilter
+public class CustomAuthorizationAttribute : Attribute//, IAuthorizationFilter//, IAsyncAuthorizationFilter
 {
     private readonly string? Permission;
+    private readonly bool WithPermissions;
+    private readonly AuthType AuthType;
 
-    public CustomAuthorizationAttribute()
+    public CustomAuthorizationAttribute(AuthType authType)
     {
+        AuthType = authType;
+        WithPermissions = false;
     }
 
-    public CustomAuthorizationAttribute(string permission)
+    public CustomAuthorizationAttribute(AuthType authType, string permission)
     {
         Permission = permission;
+        switch (authType)
+        {
+            case AuthType.CREDENTIALS:
+                break;
+            case AuthType.SESSION:
+                break;
+            case AuthType.STRICT_SESSION:
+                break;
+            case AuthType.API_KEY:
+                break;
+            case AuthType.STANDARD:
+                break;
+            default:
+                break;
+        }
+        AuthType = authType;
+        WithPermissions = true;
         CamService.RegisterPermission(permission);
     }
-
+    /*
     public void OnAuthorization(AuthorizationFilterContext context)
     {
 
@@ -55,5 +72,5 @@ public class CustomAuthorizationAttribute : Attribute, IAuthorizationFilter//, I
 
     }
 
-    //public Task OnAuthorizationAsync(AuthorizationFilterContext context) => throw new NotImplementedException();
+    //public Task OnAuthorizationAsync(AuthorizationFilterContext context) => throw new NotImplementedException();*/
 }

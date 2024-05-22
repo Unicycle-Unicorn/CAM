@@ -12,8 +12,9 @@ using HashedSessionId = byte[];
 using SinglePermission = (string service, string permission);
 using CredentialsAccessManager.Models;
 using System.Collections.Concurrent;
+using AuthProvider.CamInterface;
 
-namespace CredentialsAccessManager.Credentials;
+namespace CredentialsAccessManager.Credentials.CredentialStore;
 
 public class CredentialStore : ICredentialStore
 {
@@ -27,11 +28,11 @@ public class CredentialStore : ICredentialStore
     }
 
     #region User
-    public bool CreateUser(Username username, Password password)
+    public UserActionResult<UserId> CreateUser(Username username, Password password)
     {
-        if (UsernamesToUserIds.ContainsKey(username)) return false;
+        if (UsernamesToUserIds.ContainsKey(username)) return UserActionResult<UserId>.Unsuccessful();
         UserId newUserId = UserId.NewGuid();
-        if (!UsernamesToUserIds.TryAdd(username, newUserId)) return false;
+        if (!UsernamesToUserIds.TryAdd(username, newUserId)) return UserActionResult<UserId>.Unsuccessful();
         UserData newUserData = new UserData()
         {
             Username = username,
@@ -39,7 +40,7 @@ public class CredentialStore : ICredentialStore
             Permissions = Configuration.DefaultUserPermissions.Duplicate()
         };
         _ = UserIdsToUserData.TryAdd(newUserId, newUserData);
-        return true;
+        return UserActionResult<UserId>.Successful(newUserId);
     }
     public AuthorizationResult AuthenticateCredentials(Username username, Password password)
     {
@@ -47,7 +48,8 @@ public class CredentialStore : ICredentialStore
         {
             if (UserIdsToUserData.TryGetValue(userId, out UserData? userData) && userData != null)
             {
-                if (Configuration.PasswordHasher.Verify(password, userData.HashedPassword)) {
+                if (Configuration.PasswordHasher.Verify(password, userData.HashedPassword))
+                {
                     return AuthorizationResult.Authenticated(userId);
                 }
             }
@@ -76,16 +78,16 @@ public class CredentialStore : ICredentialStore
     {
         if (UsernamesToUserIds.TryGetValue(username, out UserId userId))
         {
-            return UserActionResult<UserId>.Successfull(userId);
+            return UserActionResult<UserId>.Successful(userId);
         }
-        
+
         return UserActionResult<UserId>.UserNotFound();
     }
     public UserActionResult<Username> GetUsernameFromUserId(UserId userId)
     {
         if (UserIdsToUserData.TryGetValue(userId, out UserData? userData) && userData != null)
         {
-            return UserActionResult<Username>.Successfull(userData.Username);
+            return UserActionResult<Username>.Successful(userData.Username);
         }
 
         return UserActionResult<Username>.UserNotFound();
@@ -112,7 +114,8 @@ public class CredentialStore : ICredentialStore
             if (userData.Sessions != null)
             {
                 userData.Sessions.Add(databaseCompatibleId, session);
-            } else
+            }
+            else
             {
                 userData.Sessions = new Dictionary<HashedSessionId, ActiveSession>(StructuralEqualityComparer<HashedSessionId>.Default);
             }
@@ -123,6 +126,7 @@ public class CredentialStore : ICredentialStore
         sessionId = null;
         return false;
     }
+
     public AuthorizationResult AuthenticateSession(SessionId sessionId)
     {
         if (Configuration.SessionIdGenerator.TryParseId(sessionId, out (UserId userId, HashedSessionId databaseCompatibleId)? parsedId) && parsedId.HasValue)
@@ -140,7 +144,7 @@ public class CredentialStore : ICredentialStore
                         session.Refresh(currentTime + Configuration.SessionIdleTimeoutSeconds);
                         return AuthorizationResult.Authenticated(parsedId.Value.userId);
                     }
-                    
+
                     _ = userData.Sessions.Remove(parsedId.Value.databaseCompatibleId);
                 }
             }
@@ -167,7 +171,8 @@ public class CredentialStore : ICredentialStore
                         if (userData.Permissions.Contains(permission))
                         {
                             return AuthorizationResult.Authorized(parsedId.Value.userId, permission);
-                        } else
+                        }
+                        else
                         {
                             return AuthorizationResult.Authenticated(parsedId.Value.userId);
                         }
@@ -200,7 +205,7 @@ public class CredentialStore : ICredentialStore
                         {
                             return AuthorizationResult.Authenticated(parsedId.Value.userId);
                         }
-                        
+
                     }
 
                     _ = userData.Sessions.Remove(parsedId.Value.databaseCompatibleId);
@@ -231,7 +236,8 @@ public class CredentialStore : ICredentialStore
                             if (userData.Permissions.Contains(permission))
                             {
                                 return AuthorizationResult.Authorized(parsedId.Value.userId, permission);
-                            } else
+                            }
+                            else
                             {
                                 return AuthorizationResult.Authenticated(parsedId.Value.userId);
                             }
@@ -321,7 +327,7 @@ public class CredentialStore : ICredentialStore
 
         // Take the last 4 significant characters of the user compatible id
         string trimmed = userCompatibleId.TrimEnd('=');
-        string internalKeyId = $"{trimmed[^4..]}{new String('=', userCompatibleId.Length - trimmed.Length)}";
+        string internalKeyId = $"{trimmed[^4..]}{new HashedPassword('=', userCompatibleId.Length - trimmed.Length)}";
 
         long currentTime = Utils.GetUnixTime();
         ApiKey apiKey = new ApiKey(currentTime, internalKeyId, permissions);
@@ -376,7 +382,8 @@ public class CredentialStore : ICredentialStore
                     if (apiKey.Permissions.Contains(permission) && userData.Permissions.Contains(permission))
                     {
                         return AuthorizationResult.Authorized(parsedId.Value.userId, permission);
-                    } else
+                    }
+                    else
                     {
                         return AuthorizationResult.Authenticated(parsedId.Value.userId);
                     }

@@ -1,11 +1,11 @@
-﻿namespace CredentialsAccessManager.Credentials;
+﻿namespace AuthProvider.CamInterface;
 
 public class AuthorizationResult
 {
-    public bool IsAuthenticated;
-    public bool IsAuthorized;
-    public (string service, string permission)? Permission;
-    public Guid? UserId;
+    public bool IsAuthenticated { get; protected set; }
+    public bool IsAuthorized { get; protected set; }
+    public (string service, string permission)? Permission { get; protected set; }
+    public Guid? UserId { get; protected set; }
 
     public static AuthorizationResult Failed()
     {

@@ -7,13 +7,14 @@ using SinglePermission = (string service, string permission);
 
 using System.Diagnostics.CodeAnalysis;
 using CredentialsAccessManager.Session;
+using AuthProvider.CamInterface;
 
-namespace CredentialsAccessManager.Credentials;
+namespace CredentialsAccessManager.Credentials.CredentialStore;
 
 public interface ICredentialStore
 {
     #region User
-    public bool CreateUser(Username username, Password password);
+    public UserActionResult<UserId> CreateUser(Username username, Password password);
     public AuthorizationResult AuthenticateCredentials(Username username, Password password);
     public AuthorizationResult AuthorizeCredentials(Username username, Password password, SinglePermission permission);
     public UserActionResult<UserId> GetUserIdFromUsername(Username username);

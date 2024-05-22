@@ -1,7 +1,13 @@
 ﻿namespace AuthProvider;
 
-public static class RegistrationService
+public class CamService
 {
+    public CamService()
+    {
+
+    }
+
+
     private static string? service;
     private static bool IsRegistered => service != null;
     public static string Service

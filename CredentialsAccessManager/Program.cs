@@ -1,5 +1,6 @@
 
 using AuthProvider;
+using AuthProvider.Authentication;
 using CredentialsAccessManager.Session;
 using CredentialsAccessManager.User;
 
@@ -36,8 +37,8 @@ public class Program
 
         app.MapControllers();
 
-        RegistrationService.RegisterPermission(Permission.LOGIN);
-        RegistrationService.RegisterService("CAM");
+        CamService.RegisterPermission(Permission.LOGIN);
+        CamService.RegisterService("CAM");
 
         app.Run();
     }

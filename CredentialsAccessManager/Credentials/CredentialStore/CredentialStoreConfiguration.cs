@@ -1,7 +1,7 @@
 ﻿using CredentialsAccessManager.Credentials.IdGenerators;
 using CredentialsAccessManager.Credentials.PasswordHashing;
 
-namespace CredentialsAccessManager.Credentials;
+namespace CredentialsAccessManager.Credentials.CredentialStore;
 
 public class CredentialStoreConfiguration
 {
@@ -35,7 +35,7 @@ public class CredentialStoreConfiguration
     /// A good time is normally around half of SESSION_IDLE_TIMEOUT_SECONDS
     /// </summary>
     public int SessionGarbageCollectionSeconds = 10 * 60; // 10 minutes
-    
+
     /// <summary>
     /// Clock skew of authorizing sessions (this shouldn't be nescessary unless Session timeout is small)
     /// </summary>
