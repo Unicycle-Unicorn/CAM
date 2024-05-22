@@ -15,7 +15,7 @@ public class UserActionResult
         };
     }
 
-    public static UserActionResult Unsucessfull()
+    public static UserActionResult Unsuccessful()
     {
         return new UserActionResult
         {
@@ -24,7 +24,7 @@ public class UserActionResult
         };
     }
 
-    public static UserActionResult Successfull()
+    public static UserActionResult Successful()
     {
         return new UserActionResult
         {
@@ -38,7 +38,7 @@ public class UserActionResult<T> : UserActionResult
 {
     public T Output { get; protected set; }
 
-    public static UserActionResult<T> UserNotFound()
+    public static new UserActionResult<T> UserNotFound()
     {
         return new UserActionResult<T>
         {
@@ -48,7 +48,7 @@ public class UserActionResult<T> : UserActionResult
         };
     }
 
-    public static UserActionResult<T> Unsuccessful()
+    public static new UserActionResult<T> Unsuccessful()
     {
         return new UserActionResult<T>
         {

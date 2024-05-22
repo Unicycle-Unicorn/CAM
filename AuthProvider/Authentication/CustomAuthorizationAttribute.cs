@@ -1,41 +1,28 @@
 ﻿using AuthProvider.Authentication;
-
+using Microsoft.AspNetCore.Mvc.Filters;
 namespace AuthProvider;
 
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
-public class CustomAuthorizationAttribute : Attribute//, IAuthorizationFilter//, IAsyncAuthorizationFilter
+public class CustomAuthorizationAttribute<T> : Attribute where T : ICamAuthorizer, new() //, IAuthorizationFilter//, IAsyncAuthorizationFilter
 {
     private readonly string? Permission;
-    private readonly bool WithPermissions;
-    private readonly AuthType AuthType;
+    private readonly bool WithPermission;
+    private readonly ICamAuthorizer Authorizer;
 
-    public CustomAuthorizationAttribute(AuthType authType)
+    public CustomAuthorizationAttribute()
     {
-        AuthType = authType;
-        WithPermissions = false;
+        WithPermission = false;
+        Permission = null;
+        Authorizer = new T();
     }
 
-    public CustomAuthorizationAttribute(AuthType authType, string permission)
+    public CustomAuthorizationAttribute(string permission)
     {
+        ArgumentException.ThrowIfNullOrEmpty(permission, nameof(permission));
         Permission = permission;
-        switch (authType)
-        {
-            case AuthType.CREDENTIALS:
-                break;
-            case AuthType.SESSION:
-                break;
-            case AuthType.STRICT_SESSION:
-                break;
-            case AuthType.API_KEY:
-                break;
-            case AuthType.STANDARD:
-                break;
-            default:
-                break;
-        }
-        AuthType = authType;
-        WithPermissions = true;
-        CamService.RegisterPermission(permission);
+        Authorizer = new T();
+        WithPermission = true;
+        CamService.RegisterPermission(permission!);
     }
     /*
     public void OnAuthorization(AuthorizationFilterContext context)
@@ -70,7 +57,11 @@ public class CustomAuthorizationAttribute : Attribute//, IAuthorizationFilter//,
         context.Result = new UnauthorizedResult();
         return;
 
-    }
+    }*/
 
-    //public Task OnAuthorizationAsync(AuthorizationFilterContext context) => throw new NotImplementedException();*/
+    /*
+    public Task OnAuthorizationAsync(AuthorizationFilterContext context)
+    {
+
+    }*/
 }

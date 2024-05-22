@@ -92,18 +92,18 @@ public class CredentialStore : ICredentialStore
 
         return UserActionResult<Username>.UserNotFound();
     }
-    // public bool TryGetUserPermissions(UserId userId, [NotNullWhen(true)] out Permissions? username);
-    // public bool GrantUserPermission(UserId userId, Permission permission);
-    // public bool RevokeUserPermission(UserId userId, Permission permission);
-    // public bool TryGetUserInformation(UserId userId, [NotNullWhen(true)] out UserInformation userInformation);
-    // public bool UpdateUserInformation(UserId userId, UserInformation newUserInformation);
-    // public bool UpdateUsername(UserId userId, Username username);
-    // public bool UpdatePassword(UserId userId, Password password);
+    // public UserActionResult<Permissions> GetUserPermissions(UserId userId);
+    // public UserActionResult GrantUserPermission(UserId userId, Permission permission);
+    // public UserActionResult RevokeUserPermission(UserId userId, Permission permission);
+    // public UserActionResult<UserInformation> GetUserInformation(UserId userId);
+    // public UserActionResult UpdateUserInformation(UserId userId, UserInformation newUserInformation);
+    // public UserActionResult UpdateUsername(UserId userId, Username username);
+    // public UserActionResult UpdatePassword(UserId userId, Password password);
     #endregion
 
 
     #region Session
-    public bool CreateNewSession(UserId userId, [NotNullWhen(true)] out SessionId? sessionId)
+    public UserActionResult<SessionId> CreateNewSession(UserId userId)
     {
         (string userCompatibleId, byte[] databaseCompatibleId) = Configuration.SessionIdGenerator.GenerateId(userId);
         long currentTime = Utils.GetUnixTime();
@@ -111,22 +111,24 @@ public class CredentialStore : ICredentialStore
 
         if (UserIdsToUserData.TryGetValue(userId, out UserData? userData) && userData != null)
         {
+            
             if (userData.Sessions != null)
             {
-                userData.Sessions.Add(databaseCompatibleId, session);
+                if (!userData.Sessions.TryAdd(databaseCompatibleId, session))
+                {
+                    return UserActionResult<SessionId>.Unsuccessful();
+                }
             }
             else
             {
                 userData.Sessions = new Dictionary<HashedSessionId, ActiveSession>(StructuralEqualityComparer<HashedSessionId>.Default);
             }
-            sessionId = userCompatibleId;
-            return true;
+                
+            return UserActionResult<SessionId>.Successful(userCompatibleId);
         }
 
-        sessionId = null;
-        return false;
+        return UserActionResult<SessionId>.UserNotFound();
     }
-
     public AuthorizationResult AuthenticateSession(SessionId sessionId)
     {
         if (Configuration.SessionIdGenerator.TryParseId(sessionId, out (UserId userId, HashedSessionId databaseCompatibleId)? parsedId) && parsedId.HasValue)
@@ -252,76 +254,102 @@ public class CredentialStore : ICredentialStore
 
         return AuthorizationResult.Failed();
     }
-    public bool RevokeSessionBySessionId(SessionId sessionId)
+    public UserActionResult RevokeSessionBySessionId(SessionId sessionId)
     {
         if (Configuration.SessionIdGenerator.TryParseId(sessionId, out (UserId userId, HashedSessionId databaseCompatibleId)? parsedId) && parsedId.HasValue)
         {
-            if (UserIdsToUserData.TryGetValue(parsedId.Value.userId, out UserData? userData) && userData?.Sessions != null)
+            if (UserIdsToUserData.TryGetValue(parsedId.Value.userId, out UserData? userData) && userData != null)
             {
-                bool removed = userData.Sessions.Remove(parsedId.Value.databaseCompatibleId);
-                if (userData.Sessions.Count <= 0)
+                if (userData.Sessions != null)
                 {
-                    userData.Sessions = null;
+                    bool removed = userData.Sessions.Remove(parsedId.Value.databaseCompatibleId);
+                    if (userData.Sessions.Count <= 0)
+                    {
+                        userData.Sessions = null;
+                    }
+                    
+                    if (removed)
+                    {
+                        return UserActionResult.Successful();
+                    }
                 }
-                return removed;
-            }
-        }
-        return false;
-    }
-    public bool RevokeSessionBySessionInternalId(UserId userId, int internalSessionId)
-    {
-        if (UserIdsToUserData.TryGetValue(userId, out UserData? userData) && userData?.Sessions != null)
-        {
-            byte[]? sessionIdToRemove = null;
-            foreach ((byte[] sessionId, ActiveSession session) in userData.Sessions)
-            {
-                if (session.InternalSessionId == internalSessionId)
-                {
-                    sessionIdToRemove = sessionId;
-                    break;
-                }
-            }
 
-            if (sessionIdToRemove != null)
-            {
-                bool removed = userData.Sessions.Remove(sessionIdToRemove);
-                if (userData.Sessions.Count <= 0)
-                {
-                    userData.Sessions = null;
-                }
-                return removed;
+                return UserActionResult.Unsuccessful();
             }
         }
 
-        return false;
+        return UserActionResult.UserNotFound();
     }
-    public bool RevokeAllSessions(UserId userId)
+    public UserActionResult RevokeSessionBySessionInternalId(UserId userId, int internalSessionId)
     {
-        if (UserIdsToUserData.TryGetValue(userId, out UserData? userData) && userData?.Sessions != null)
+        if (UserIdsToUserData.TryGetValue(userId, out UserData? userData) && userData != null)
         {
-            userData.Sessions.Clear();
-            userData.Sessions = null;
-            return true;
+            if (userData.Sessions != null)
+            {
+                byte[]? sessionIdToRemove = null;
+                foreach ((byte[] sessionId, ActiveSession session) in userData.Sessions)
+                {
+                    if (session.InternalSessionId == internalSessionId)
+                    {
+                        sessionIdToRemove = sessionId;
+                        break;
+                    }
+                }
+
+                if (sessionIdToRemove != null)
+                {
+                    bool removed = userData.Sessions.Remove(sessionIdToRemove);
+                    if (userData.Sessions.Count <= 0)
+                    {
+                        userData.Sessions = null;
+                    }
+
+                    if (removed)
+                    {
+                        return UserActionResult.Successful();
+                    }
+                }
+            }
+
+            return UserActionResult.Unsuccessful();
         }
 
-        return false;
+        return UserActionResult.UserNotFound();
     }
-    public bool GetAllSessions(UserId userId, [NotNullWhen(true)] out List<ActiveSession>? sessions)
+    public UserActionResult RevokeAllSessions(UserId userId)
     {
-        if (UserIdsToUserData.TryGetValue(userId, out UserData? userData) && userData?.Sessions != null)
+        if (UserIdsToUserData.TryGetValue(userId, out UserData? userData) && userData != null)
         {
-            sessions = [.. userData.Sessions.Values];
-            return true;
+            if (userData.Sessions != null)
+            {
+                userData.Sessions.Clear();
+                userData.Sessions = null;
+                return UserActionResult.Successful();
+            }
+            return UserActionResult.Unsuccessful();
         }
 
-        sessions = null;
-        return false;
+        return UserActionResult.UserNotFound();
+    }
+    public UserActionResult<List<ActiveSession>> GetAllSessions(UserId userId)
+    {
+        if (UserIdsToUserData.TryGetValue(userId, out UserData? userData) && userData != null)
+        {
+            if (userData.Sessions != null)
+            {
+                return UserActionResult<List<ActiveSession>>.Successful([.. userData.Sessions.Values]);
+            }
+
+            return UserActionResult<List<ActiveSession>>.Unsuccessful();
+        }
+
+        return UserActionResult<List<ActiveSession>>.UserNotFound();
     }
     #endregion
 
 
     #region ApiKey
-    public bool CreateNewApiKey(UserId userId, Permissions permissions, [NotNullWhen(true)] out ApiKeyId? apiKeyid)
+    public UserActionResult<ApiKeyId> CreateNewApiKey(UserId userId, Permissions permissions)
     {
         (string userCompatibleId, byte[] databaseCompatibleId) = Configuration.ApiKeyIdGenerator.GenerateId(userId);
 
@@ -335,18 +363,20 @@ public class CredentialStore : ICredentialStore
         {
             if (userData.ApiKeys != null)
             {
-                userData.ApiKeys.Add(databaseCompatibleId, apiKey);
+                if (!userData.ApiKeys.TryAdd(databaseCompatibleId, apiKey))
+                {
+                    return UserActionResult<ApiKeyId>.Unsuccessful();
+                }
             }
             else
             {
                 userData.ApiKeys = new Dictionary<HashedApiKeyId, ApiKey>(StructuralEqualityComparer<HashedApiKeyId>.Default);
             }
-            apiKeyid = userCompatibleId;
-            return true;
+                
+            return UserActionResult<ApiKeyId>.Successful(userCompatibleId);
         }
 
-        apiKeyid = null;
-        return false;
+        return UserActionResult<ApiKeyId>.UserNotFound();
     }
     public AuthorizationResult AuthenticateApiKey(ApiKeyId apiKeyId)
     {
@@ -393,58 +423,75 @@ public class CredentialStore : ICredentialStore
 
         return AuthorizationResult.Failed();
     }
-    public bool RevokeApiKeyPermissionByApiKeyInternalId(UserId userId, string internalId, SinglePermission permission)
+    public UserActionResult RevokeApiKeyPermissionByApiKeyInternalId(UserId userId, string internalId, SinglePermission permission)
     {
-        if (UserIdsToUserData.TryGetValue(userId, out UserData? userData) && userData?.ApiKeys != null)
+        if (UserIdsToUserData.TryGetValue(userId, out UserData? userData) && userData != null)
         {
-            foreach ((byte[] apiKeyId, ApiKey apiKey) in userData.ApiKeys)
+            if (userData.ApiKeys != null)
             {
-                if (apiKey.InternalId == internalId)
+                foreach ((_, ApiKey apiKey) in userData.ApiKeys)
                 {
-                    return apiKey.Permissions.Remove(permission);
+                    if (apiKey.InternalId == internalId)
+                    {
+                        bool removed = apiKey.Permissions.Remove(permission);
+                        if (removed)
+                        {
+                            return UserActionResult.Successful();
+                        }
+                    }
                 }
             }
+            
+            return UserActionResult.Unsuccessful();
         }
 
-        return false;
+        return UserActionResult.UserNotFound();
     }
-    public bool DeleteApiKeyByApiKeyInternalId(UserId userId, string internalId)
+    public UserActionResult DeleteApiKeyByApiKeyInternalId(UserId userId, string internalId)
     {
-        if (UserIdsToUserData.TryGetValue(userId, out UserData? userData) && userData?.ApiKeys != null)
+        if (UserIdsToUserData.TryGetValue(userId, out UserData? userData) && userData != null)
         {
-            byte[]? apiKeyidToRemove = null;
-            foreach ((byte[] apiKeyId, ApiKey apiKey) in userData.ApiKeys)
-            {
-                if (apiKey.InternalId == internalId)
+            if (userData.ApiKeys != null) {
+                byte[]? apiKeyidToRemove = null;
+                foreach ((byte[] apiKeyId, ApiKey apiKey) in userData.ApiKeys)
                 {
-                    apiKeyidToRemove = apiKeyId;
-                    break;
+                    if (apiKey.InternalId == internalId)
+                    {
+                        apiKeyidToRemove = apiKeyId;
+                        break;
+                    }
+                }
+
+                if (apiKeyidToRemove != null)
+                {
+                    bool removed = userData.ApiKeys.Remove(apiKeyidToRemove);
+                    if (userData.ApiKeys.Count <= 0)
+                    {
+                        userData.ApiKeys = null;
+                    }
+                    if (removed)
+                    {
+                        return UserActionResult.Successful();
+                    }
                 }
             }
 
-            if (apiKeyidToRemove != null)
-            {
-                bool removed = userData.ApiKeys.Remove(apiKeyidToRemove);
-                if (userData.ApiKeys.Count <= 0)
-                {
-                    userData.ApiKeys = null;
-                }
-                return removed;
-            }
+            return UserActionResult.Unsuccessful();
         }
 
-        return false;
+        return UserActionResult.UserNotFound();
     }
-    public bool GetAllApiKeys(UserId userId, [NotNullWhen(true)] out List<ApiKey>? apiKeys)
+    public UserActionResult<List<ApiKey>> GetAllApiKeys(UserId userId)
     {
-        if (UserIdsToUserData.TryGetValue(userId, out UserData? userData) && userData?.ApiKeys != null)
+        if (UserIdsToUserData.TryGetValue(userId, out UserData? userData) && userData != null)
         {
-            apiKeys = [.. userData.ApiKeys.Values];
-            return true;
+            if (userData.ApiKeys != null)
+            {
+                return UserActionResult<List<ApiKey>>.Successful([.. userData.ApiKeys.Values]);
+            }
+            return UserActionResult<List<ApiKey>>.Unsuccessful();
         }
-
-        apiKeys = null;
-        return false;
+        return UserActionResult<List<ApiKey>>.UserNotFound();
     }
     #endregion
 }
