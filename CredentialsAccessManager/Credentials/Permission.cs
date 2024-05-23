@@ -1,4 +1,4 @@
-﻿namespace CredentialsAccessManager;
+﻿namespace CredentialsAccessManager.Credentials;
 
 public struct Permission
 {

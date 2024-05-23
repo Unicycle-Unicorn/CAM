@@ -1,6 +1,7 @@
 using AuthProvider;
 using AuthProvider.Authentication;
 using AuthProvider.CamInterface;
+using AuthProvider.Utils;
 using CredentialsAccessManager.Credentials;
 using CredentialsAccessManager.Credentials.CredentialStore;
 using Microsoft.AspNetCore.Mvc;
@@ -68,7 +69,7 @@ public class UserController(ICamInterface camInterface, ICredentialStore credent
 
         string sessionId = CredentialStore.CreateNewSession(HttpContext.Features.Get<Guid>()).Output;
 
-        HttpContext.Response.Cookies.Append("Session", sessionId, SessionCookieUtils.DefaultCookieOptions);
+        CookieUtils.SetCookie(HttpContext.Response, CookieUtils.Session, sessionId, CookieUtils.SecureCookieOptions);
 
         return Ok();
     }

@@ -1,6 +1,6 @@
 ﻿using System.Collections;
 
-namespace CredentialsAccessManager;
+namespace CredentialsAccessManager.Utils;
 
 
 public class StructuralEqualityComparer<T> : IEqualityComparer<T>

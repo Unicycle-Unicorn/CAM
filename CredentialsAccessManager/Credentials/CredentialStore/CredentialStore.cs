@@ -1,4 +1,5 @@
 ﻿using AuthProvider.CamInterface;
+using CredentialsAccessManager.Utils;
 using System.Collections.Concurrent;
 using ApiKeyId = string;
 using HashedApiKeyId = byte[];
@@ -97,7 +98,7 @@ public class CredentialStore(CredentialStoreConfiguration configuration) : ICred
     public UserActionResult<SessionId> CreateNewSession(UserId userId)
     {
         (string userCompatibleId, byte[] databaseCompatibleId) = Configuration.SessionIdGenerator.GenerateId(userId);
-        long currentTime = Utils.GetUnixTime();
+        long currentTime = TimeUtils.GetUnixTime();
         ActiveSession session = new ActiveSession(currentTime, currentTime + Configuration.SessionIdleTimeoutSeconds, currentTime + Configuration.SessionAbsoluteTimeoutSeconds);
 
         if (UserIdsToUserData.TryGetValue(userId, out UserData? userData) && userData != null)
@@ -128,7 +129,7 @@ public class CredentialStore(CredentialStoreConfiguration configuration) : ICred
             {
                 if (userData.Sessions.TryGetValue(parsedId.Value.databaseCompatibleId, out ActiveSession? session) && session != null)
                 {
-                    long currentTime = Utils.GetUnixTime();
+                    long currentTime = TimeUtils.GetUnixTime();
 
                     // Remove Session if expired and return false
                     if (!session.HasExpired(currentTime + Configuration.SessionClockSkewSeconds))
@@ -153,7 +154,7 @@ public class CredentialStore(CredentialStoreConfiguration configuration) : ICred
             {
                 if (userData.Sessions.TryGetValue(parsedId.Value.databaseCompatibleId, out ActiveSession? session) && session != null)
                 {
-                    long currentTime = Utils.GetUnixTime();
+                    long currentTime = TimeUtils.GetUnixTime();
 
                     // Remove Session if expired and return false
                     if (!session.HasExpired(currentTime + Configuration.SessionClockSkewSeconds))
@@ -186,7 +187,7 @@ public class CredentialStore(CredentialStoreConfiguration configuration) : ICred
             {
                 if (userData.Sessions.TryGetValue(parsedId.Value.databaseCompatibleId, out ActiveSession? session) && session != null)
                 {
-                    long currentTime = Utils.GetUnixTime();
+                    long currentTime = TimeUtils.GetUnixTime();
 
                     // Remove Session if expired and return false
                     if (!session.HasExpired(currentTime + Configuration.SessionClockSkewSeconds))
@@ -216,7 +217,7 @@ public class CredentialStore(CredentialStoreConfiguration configuration) : ICred
             {
                 if (userData.Sessions.TryGetValue(parsedId.Value.databaseCompatibleId, out ActiveSession? session) && session != null)
                 {
-                    long currentTime = Utils.GetUnixTime();
+                    long currentTime = TimeUtils.GetUnixTime();
 
                     // Remove Session if expired and return false
                     if (!session.HasExpired(currentTime + Configuration.SessionClockSkewSeconds))
@@ -348,7 +349,7 @@ public class CredentialStore(CredentialStoreConfiguration configuration) : ICred
         string trimmed = userCompatibleId.TrimEnd('=');
         string internalKeyId = $"{trimmed[^4..]}{new HashedPassword('=', userCompatibleId.Length - trimmed.Length)}";
 
-        long currentTime = Utils.GetUnixTime();
+        long currentTime = TimeUtils.GetUnixTime();
         ApiKey apiKey = new ApiKey(currentTime, internalKeyId, permissions);
         if (UserIdsToUserData.TryGetValue(userId, out UserData? userData) && userData != null)
         {
@@ -377,7 +378,7 @@ public class CredentialStore(CredentialStoreConfiguration configuration) : ICred
             {
                 if (userData.ApiKeys.TryGetValue(parsedId.Value.databaseCompatibleId, out ApiKey? apiKey) && apiKey != null)
                 {
-                    long currentTime = Utils.GetUnixTime();
+                    long currentTime = TimeUtils.GetUnixTime();
 
                     apiKey.Use(currentTime);
 
@@ -396,7 +397,7 @@ public class CredentialStore(CredentialStoreConfiguration configuration) : ICred
             {
                 if (userData.ApiKeys.TryGetValue(parsedId.Value.databaseCompatibleId, out ApiKey? apiKey) && apiKey != null)
                 {
-                    long currentTime = Utils.GetUnixTime();
+                    long currentTime = TimeUtils.GetUnixTime();
 
                     apiKey.Use(currentTime);
 
