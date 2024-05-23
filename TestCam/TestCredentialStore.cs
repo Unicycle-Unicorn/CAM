@@ -186,7 +186,7 @@ internal static class UserActionResultExtensions
     {
         Assert.True(result.FoundUser);
         Assert.False(result.OperationSuccess);
-        Assert.Equal(default(T), result.Output);
+        Assert.Equal(default, result.Output);
     }
 
     internal static void AssertSuccessfull(this UserActionResult result)
@@ -224,7 +224,7 @@ internal static class AuthorizationResultExtensions
     {
         Assert.True(result.IsAuthenticated);
         Assert.True(result.IsAuthorized);
-        Assert.NotNull(result.Permission);
+        _ = Assert.NotNull(result.Permission);
         Assert.Equal(userId, result.UserId);
     }
 
@@ -232,7 +232,7 @@ internal static class AuthorizationResultExtensions
     {
         Assert.True(result.IsAuthenticated);
         Assert.True(result.IsAuthorized);
-        Assert.NotNull(result.UserId);
+        _ = Assert.NotNull(result.UserId);
         Assert.Equal(permission, result.Permission);
     }
 
@@ -240,8 +240,8 @@ internal static class AuthorizationResultExtensions
     {
         Assert.True(result.IsAuthenticated);
         Assert.True(result.IsAuthorized);
-        Assert.NotNull(result.UserId);
-        Assert.NotNull(result.Permission);
+        _ = Assert.NotNull(result.UserId);
+        _ = Assert.NotNull(result.Permission);
     }
 
 
@@ -257,7 +257,7 @@ internal static class AuthorizationResultExtensions
     {
         Assert.True(result.IsAuthenticated);
         Assert.False(result.IsAuthorized);
-        Assert.NotNull(result.UserId);
+        _ = Assert.NotNull(result.UserId);
         Assert.Null(result.Permission);
     }
 

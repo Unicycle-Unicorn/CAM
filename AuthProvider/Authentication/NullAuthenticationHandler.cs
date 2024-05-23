@@ -5,15 +5,10 @@ using System.Text.Encodings.Web;
 
 namespace AuthProvider.Authentication;
 
-public class NullAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
+public class NullAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock) : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder, clock)
 {
     private const string Name = "NullAuthentication";
     private const string DisplayName = "Null Authentication Handler";
-
-    public NullAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock)
-        : base(options, logger, encoder, clock)
-    {
-    }
 
     public static void RegisterWithBuilder(AuthenticationOptions options)
     {

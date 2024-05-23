@@ -3,16 +3,11 @@ using System.Security.Cryptography;
 
 namespace CredentialsAccessManager.Credentials.IdGenerators;
 
-public class IdGenerator : IIdGenerator
+public class IdGenerator(IdGeneratorConfiguration configuration) : IIdGenerator
 {
-    private IdGeneratorConfiguration Configuration;
+    private IdGeneratorConfiguration Configuration = configuration;
     private static RandomNumberGenerator Random = RandomNumberGenerator.Create();
     private const int GuidByteLength = 16;
-
-    public IdGenerator(IdGeneratorConfiguration configuration)
-    {
-        Configuration = configuration;
-    }
 
     public (string userCompatibleId, byte[] databaseCompatibleId) GenerateId(Guid userId)
     {

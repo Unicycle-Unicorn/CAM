@@ -1,12 +1,10 @@
-﻿using UserId = System.Guid;
-using Username = string;
-using Password = string;
+﻿using AuthProvider.CamInterface;
 using ApiKeyId = string;
+using Password = string;
 using SessionId = string;
 using SinglePermission = (string service, string permission);
-
-using CredentialsAccessManager.Session;
-using AuthProvider.CamInterface;
+using UserId = System.Guid;
+using Username = string;
 
 namespace CredentialsAccessManager.Credentials.CredentialStore;
 

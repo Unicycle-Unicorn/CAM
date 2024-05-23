@@ -1,31 +1,22 @@
-﻿using CredentialsAccessManager.Session;
-using System.Diagnostics.CodeAnalysis;
-
-using UserId = System.Guid;
-using Username = string;
-using Password = string;
-using HashedPassword = string;
+﻿using AuthProvider.CamInterface;
+using System.Collections.Concurrent;
 using ApiKeyId = string;
 using HashedApiKeyId = byte[];
-using SessionId = string;
+using HashedPassword = string;
 using HashedSessionId = byte[];
+using Password = string;
+using SessionId = string;
 using SinglePermission = (string service, string permission);
-using CredentialsAccessManager.Models;
-using System.Collections.Concurrent;
-using AuthProvider.CamInterface;
+using UserId = System.Guid;
+using Username = string;
 
 namespace CredentialsAccessManager.Credentials.CredentialStore;
 
-public class CredentialStore : ICredentialStore
+public class CredentialStore(CredentialStoreConfiguration configuration) : ICredentialStore
 {
-    private ConcurrentDictionary<UserId, UserData> UserIdsToUserData = [];
-    private ConcurrentDictionary<Username, UserId> UsernamesToUserIds = new(StringComparer.OrdinalIgnoreCase);
-    private CredentialStoreConfiguration Configuration;
-
-    public CredentialStore(CredentialStoreConfiguration configuration)
-    {
-        Configuration = configuration;
-    }
+    private readonly ConcurrentDictionary<UserId, UserData> UserIdsToUserData = [];
+    private readonly ConcurrentDictionary<Username, UserId> UsernamesToUserIds = new(StringComparer.OrdinalIgnoreCase);
+    private readonly CredentialStoreConfiguration Configuration = configuration;
 
     #region User
     public UserActionResult<UserId> CreateUser(Username username, Password password)
@@ -111,7 +102,7 @@ public class CredentialStore : ICredentialStore
 
         if (UserIdsToUserData.TryGetValue(userId, out UserData? userData) && userData != null)
         {
-            
+
             if (userData.Sessions != null)
             {
                 if (!userData.Sessions.TryAdd(databaseCompatibleId, session))
@@ -123,7 +114,7 @@ public class CredentialStore : ICredentialStore
             {
                 userData.Sessions = new Dictionary<HashedSessionId, ActiveSession>(StructuralEqualityComparer<HashedSessionId>.Default);
             }
-                
+
             return UserActionResult<SessionId>.Successful(userCompatibleId);
         }
 
@@ -267,7 +258,7 @@ public class CredentialStore : ICredentialStore
                     {
                         userData.Sessions = null;
                     }
-                    
+
                     if (removed)
                     {
                         return UserActionResult.Successful();
@@ -372,7 +363,7 @@ public class CredentialStore : ICredentialStore
             {
                 userData.ApiKeys = new Dictionary<HashedApiKeyId, ApiKey>(StructuralEqualityComparer<HashedApiKeyId>.Default);
             }
-                
+
             return UserActionResult<ApiKeyId>.Successful(userCompatibleId);
         }
 
@@ -441,7 +432,7 @@ public class CredentialStore : ICredentialStore
                     }
                 }
             }
-            
+
             return UserActionResult.Unsuccessful();
         }
 
@@ -451,7 +442,8 @@ public class CredentialStore : ICredentialStore
     {
         if (UserIdsToUserData.TryGetValue(userId, out UserData? userData) && userData != null)
         {
-            if (userData.ApiKeys != null) {
+            if (userData.ApiKeys != null)
+            {
                 byte[]? apiKeyidToRemove = null;
                 foreach ((byte[] apiKeyId, ApiKey apiKey) in userData.ApiKeys)
                 {

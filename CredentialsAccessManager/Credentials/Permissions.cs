@@ -1,12 +1,12 @@
-﻿using ServiceName = string;
-using PermissionName = string;
+﻿using PermissionName = string;
+using ServiceName = string;
 
 namespace CredentialsAccessManager.Credentials;
 
 public class Permissions
 {
     public Dictionary<ServiceName, HashSet<PermissionName>> Perms;
-    
+
     public Permissions(Dictionary<string, HashSet<string>> permissions)
     {
         Perms = permissions;
@@ -64,7 +64,8 @@ public class Permissions
         if (Perms.TryGetValue(service, out var permissions) && permissions != null)
         {
             _ = permissions.Add(permission);
-        } else
+        }
+        else
         {
             Perms.Add(service, [permission]);
         }

@@ -6,7 +6,7 @@ public static class SessionCookieUtils
 {
     private const string SessionCookieName = "SessionCredentials";
 
-    private static readonly CookieOptions DefaultCookieOptions = new()
+    public static readonly CookieOptions DefaultCookieOptions = new()
     {
         //Domain = "api.unicycleunicorn.net",
         HttpOnly = true,

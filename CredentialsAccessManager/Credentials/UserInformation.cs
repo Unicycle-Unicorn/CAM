@@ -1,4 +1,4 @@
-﻿namespace CredentialsAccessManager.Models;
+﻿namespace CredentialsAccessManager.Credentials;
 
 public class UserInformation
 {

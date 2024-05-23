@@ -1,44 +1,68 @@
 
 using AuthProvider;
 using AuthProvider.Authentication;
-using CredentialsAccessManager.Session;
-using CredentialsAccessManager.User;
+using AuthProvider.CamInterface;
+using CredentialsAccessManager.CamInterface;
+using CredentialsAccessManager.Credentials;
+using CredentialsAccessManager.Credentials.CredentialStore;
+using CredentialsAccessManager.Credentials.IdGenerators;
+using CredentialsAccessManager.Credentials.PasswordHashing;
 
 namespace CredentialsAccessManager;
 
 public class Program
 {
-    public static void Main(string[] args)
+    public async static Task Main(string[] args)
     {
         WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
         // Add services to the container.
 
-        builder.Services.AddControllers();
+        _ = builder.Services.AddControllers();
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-        builder.Services.AddEndpointsApiExplorer();
-        builder.Services.AddSwaggerGen();
+        _ = builder.Services.AddEndpointsApiExplorer();
+        _ = builder.Services.AddSwaggerGen(config => config.OperationFilter<AuthAttribute<CredentialAuth>>());
 
-        builder.Services.AddAuthentication(NullAuthenticationHandler.RegisterWithBuilder);
+        _ = builder.Services.AddAuthentication(NullAuthenticationHandler.RegisterWithBuilder);
 
-        builder.Services.AddSingleton(typeof(IUserStore), new UserStore());
-        builder.Services.AddSingleton(typeof(ISessionStore), new SessionStore());
+        //builder.Services.AddSingleton(typeof(ICamInterface), new RemoteCamInterface("cam", "https://api.unicycleunicorn.net/cam"));
+        var credentialStore = new CredentialStore(new()
+        {
+            DefaultUserPermissions = new Permissions(new() {
+                { "cam", [Permission.LOGIN] }
+            }),
+            SessionIdleTimeoutSeconds = 20 * 60, // 2 second idle timeout
+            SessionAbsoluteTimeoutSeconds = 500000, // 5 second absolute timeout
+            PasswordHasher = new PasswordHasher(new()),
+            ApiKeyIdGenerator = new IdGenerator(new()
+            {
+                IdLengthBytes = 12,
+                Hasher = System.Security.Cryptography.SHA256.HashData
+            }),
+            SessionIdGenerator = new IdGenerator(new()
+            {
+                IdLengthBytes = 8
+            })
+        });
+        _ = builder.Services.AddSingleton(typeof(ICredentialStore), credentialStore);
+
+        var camService = new LocalCamInterface("cam", credentialStore);
+        _ = builder.Services.AddSingleton(typeof(ICamInterface), camService);
 
         WebApplication app = builder.Build();
 
         // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())
         {
-            app.UseSwagger();
-            app.UseSwaggerUI();
+            _ = app.UseSwagger();
+            _ = app.UseSwaggerUI();
         }
 
-        app.UseAuthorization();
+        _ = app.UseAuthorization();
 
-        app.MapControllers();
+        _ = app.MapControllers();
 
-        CamService.RegisterPermission(Permission.LOGIN);
-        CamService.RegisterService("CAM");
+        await camService.Initialize();
 
         app.Run();
     }

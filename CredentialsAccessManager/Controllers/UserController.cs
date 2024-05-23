@@ -1,7 +1,8 @@
 using AuthProvider;
-using CredentialsAccessManager.Models;
-using CredentialsAccessManager.Session;
-using CredentialsAccessManager.User;
+using AuthProvider.Authentication;
+using AuthProvider.CamInterface;
+using CredentialsAccessManager.Credentials;
+using CredentialsAccessManager.Credentials.CredentialStore;
 using Microsoft.AspNetCore.Mvc;
 
 /*
@@ -31,16 +32,10 @@ void Login(string username, string password): incorrect pass or username (401)
 namespace CredentialsAccessManager.Controllers;
 [ApiController]
 [Route("[controller]/[action]")]
-public class UserController : ControllerBase
+public class UserController(ICamInterface camInterface, ICredentialStore credentialStore) : ControllerBase
 {
-    private readonly IUserStore UserStore;
-    private readonly ISessionStore SessionStore;
-
-    public UserController(IUserStore userStore, ISessionStore sessionStore)
-    {
-        UserStore = userStore;
-        SessionStore = sessionStore;
-    }
+    private readonly ICamInterface CamInterface = camInterface;
+    private readonly ICredentialStore CredentialStore = credentialStore;
 
     [HttpGet]
     public IActionResult TestGet()
@@ -52,42 +47,44 @@ public class UserController : ControllerBase
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public IActionResult CreateAccount([FromBody] UserCredentials userCredentials) => UserStore.CreateUser(userCredentials.Username, userCredentials.Password, new UserInformation()) ? Ok() : Conflict();
-
-    [HttpPost]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    public IActionResult Login([FromBody] UserCredentials userCredentials)
+    public IActionResult CreateAccount([FromBody] UserCredentials userCredentials)
     {
-        if (UserStore.AttemptLogin(userCredentials.Username, userCredentials.Password, out Guid userId))
+        UserActionResult result = CredentialStore.CreateUser(userCredentials.Username, userCredentials.Password);
+
+        if (result.OperationSuccess)
+            return Ok();
+        else
         {
-            if (UserStore.HasPermission(userId, CamService.Service, Permission.LOGIN))
-            {
-                SessionCredentials session = SessionStore.CreateNewSession(userId);
-
-                SessionCookieUtils.AttachSession(Response, session);
-
-                return Ok();
-            }
-
-            return Forbid();
+            return Conflict();
         }
-
-        return Unauthorized();
     }
 
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [CustomAuthorization]
+    [Auth<CredentialAuth>(Permission.LOGIN)]
+    public IActionResult Login()
+    {
+        Console.WriteLine("Inside Login method");
+
+        string sessionId = CredentialStore.CreateNewSession(HttpContext.Features.Get<Guid>()).Output;
+
+        HttpContext.Response.Cookies.Append("Session", sessionId, SessionCookieUtils.DefaultCookieOptions);
+
+        return Ok();
+    }
+    /*
+    [HttpPost]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    //[Auth<>]
     public IActionResult Logout()
     {
-        SessionCredentials session = GetSession();
+        AuthorizationResult authResult = GetSession();
         SessionStore.RevokeSession(session.UserId, session.SessionId);
         SessionCookieUtils.RemoveSession(Response);
         return Ok();
-    }
+    }*/
 
+    /*
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [CustomAuthorization]
@@ -128,7 +125,5 @@ public class UserController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [CustomAuthorization(Permission.READ_SELF)]
     public IActionResult GetPermissions() => throw new NotImplementedException();
-
-    [NonAction]
-    public SessionCredentials GetSession() => HttpContext.Features.Get<SessionCredentials>();
+    */
 }

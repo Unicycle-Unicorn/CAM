@@ -6,14 +6,9 @@ namespace CredentialsAccessManager.Credentials.PasswordHashing;
 /// https://stackoverflow.com/questions/4181198/how-to-hash-a-password
 /// This was a very nice, compatible, secure solution
 /// </summary>
-public class PasswordHasher : IPasswordHasher
+public class PasswordHasher(PasswordHasherConfiguration configuration) : IPasswordHasher
 {
-    private PasswordHasherConfiguration Configuration;
-
-    public PasswordHasher(PasswordHasherConfiguration configuration)
-    {
-        Configuration = configuration;
-    }
+    private PasswordHasherConfiguration Configuration = configuration;
 
     public string Hash(string input)
     {

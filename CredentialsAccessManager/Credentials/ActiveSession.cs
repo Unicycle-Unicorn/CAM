@@ -1,8 +1,8 @@
-﻿namespace CredentialsAccessManager.Session;
+﻿namespace CredentialsAccessManager.Credentials;
 
-public class ActiveSession
+public class ActiveSession(long currentTime, long idleExpiryTime, long absoluteExpiryTime)
 {
-    
+
     private static readonly Random random = new();
     public static int GetInsecureRandomId()
     {
@@ -15,30 +15,22 @@ public class ActiveSession
     /// <summary>
     /// Creation time of this Session
     /// </summary>
-    public long CreationTime { get; set; }
+    public long CreationTime { get; set; } = currentTime;
 
     /// <summary>
     /// Idle expiry time of this Session
     /// </summary>
-    public long IdleExpiryTime { get; set; }
+    public long IdleExpiryTime { get; set; } = idleExpiryTime;
 
     /// <summary>
     /// Absolute expiry time of this Session
     /// </summary>
-    public long AbsoluteExpiryTime { get; set; }
+    public long AbsoluteExpiryTime { get; set; } = absoluteExpiryTime;
 
     /// <summary>
     /// Internal session identifier - this way hashes are not needed
     /// </summary>
-    public int InternalSessionId { get; }
-
-    public ActiveSession(long currentTime, long idleExpiryTime, long absoluteExpiryTime)
-    {
-        CreationTime = currentTime;
-        IdleExpiryTime = idleExpiryTime;
-        AbsoluteExpiryTime = absoluteExpiryTime;
-        InternalSessionId = GetInsecureRandomId();
-    }
+    public int InternalSessionId { get; } = GetInsecureRandomId();
 
     /// <summary>
     /// Determines if this Session has expired
