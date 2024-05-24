@@ -2,8 +2,6 @@
 using AuthProvider.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.OpenApi.Models;
-using System.Diagnostics.CodeAnalysis;
-using System.Xml.Linq;
 
 namespace AuthProvider.Authentication;
 
@@ -33,7 +31,7 @@ public class CredentialAuth : ICamAuthorizer
 
     public void ApplySwaggerGeneration(OpenApiOperation operation)
     {
-        operation.AddOptionalResponseHeader(HeaderUtils.XAuthUser);
-        operation.AddOptionalResponseHeader(HeaderUtils.XAuthPass);
+        operation.AddOptionalRequestHeader(HeaderUtils.XAuthUser);
+        operation.AddOptionalRequestHeader(HeaderUtils.XAuthPass);
     }
 }

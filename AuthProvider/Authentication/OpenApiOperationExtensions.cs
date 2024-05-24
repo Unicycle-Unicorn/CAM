@@ -4,7 +4,21 @@ namespace AuthProvider.Authentication;
 
 internal static class OpenApiOperationExtensions
 {
-    internal static void AddOptionalResponseHeader(this OpenApiOperation operation, string name)
+    internal static void AddOptionalRequestCookie(this OpenApiOperation operation, string name)
+    {
+        operation.Parameters.Add(new OpenApiParameter
+        {
+            Name = name,
+            In = ParameterLocation.Cookie,
+            Required = false,
+            Schema = new OpenApiSchema
+            {
+                Type = "string"
+            }
+        });
+    }
+
+    internal static void AddOptionalRequestHeader(this OpenApiOperation operation, string name)
     {
         operation.Parameters.Add(new OpenApiParameter
         {
@@ -14,7 +28,7 @@ internal static class OpenApiOperationExtensions
             Schema = new OpenApiSchema
             {
                 Type = "string"
-            },
+            }
         });
     }
 

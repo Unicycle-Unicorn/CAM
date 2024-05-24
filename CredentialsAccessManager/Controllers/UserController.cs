@@ -39,13 +39,13 @@ public class UserController(ICamInterface camInterface, ICredentialStore credent
     private readonly ICredentialStore CredentialStore = credentialStore;
 
     [HttpGet]
+    [Auth<SessionAuth>]
     public IActionResult TestGet()
     {
         return Ok();
     }
 
     [HttpPost]
-    [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public IActionResult CreateAccount([FromBody] UserCredentials userCredentials)
@@ -69,6 +69,15 @@ public class UserController(ICamInterface camInterface, ICredentialStore credent
 
         string sessionId = CredentialStore.CreateNewSession(HttpContext.Features.Get<Guid>()).Output;
 
+        CredentialStore.GetAllSessions(HttpContext.Features.Get<Guid>()).Output.ForEach(Console.WriteLine);
+
+        // Shouldn't fail here unless something went horribly wrong
+        _ = CSRFUtils.TryGenerateCSRF(sessionId, out string csrf);
+
+        Console.WriteLine($"Session Id: {sessionId}");
+        Console.WriteLine($"CSRF: {csrf}");
+
+        CookieUtils.SetCookie(HttpContext.Response, CookieUtils.CSRF, csrf, CookieUtils.ScriptableCookieOptions);
         CookieUtils.SetCookie(HttpContext.Response, CookieUtils.Session, sessionId, CookieUtils.SecureCookieOptions);
 
         return Ok();

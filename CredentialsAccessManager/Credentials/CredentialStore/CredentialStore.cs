@@ -104,16 +104,14 @@ public class CredentialStore(CredentialStoreConfiguration configuration) : ICred
         if (UserIdsToUserData.TryGetValue(userId, out UserData? userData) && userData != null)
         {
 
-            if (userData.Sessions != null)
-            {
-                if (!userData.Sessions.TryAdd(databaseCompatibleId, session))
-                {
-                    return UserActionResult<SessionId>.Unsuccessful();
-                }
-            }
-            else
+            if (userData.Sessions == null)
             {
                 userData.Sessions = new Dictionary<HashedSessionId, ActiveSession>(StructuralEqualityComparer<HashedSessionId>.Default);
+            }
+
+            if (!userData.Sessions.TryAdd(databaseCompatibleId, session))
+            {
+                return UserActionResult<SessionId>.Unsuccessful();
             }
 
             return UserActionResult<SessionId>.Successful(userCompatibleId);
@@ -353,16 +351,14 @@ public class CredentialStore(CredentialStoreConfiguration configuration) : ICred
         ApiKey apiKey = new ApiKey(currentTime, internalKeyId, permissions);
         if (UserIdsToUserData.TryGetValue(userId, out UserData? userData) && userData != null)
         {
-            if (userData.ApiKeys != null)
-            {
-                if (!userData.ApiKeys.TryAdd(databaseCompatibleId, apiKey))
-                {
-                    return UserActionResult<ApiKeyId>.Unsuccessful();
-                }
-            }
-            else
+            if (userData.ApiKeys == null)
             {
                 userData.ApiKeys = new Dictionary<HashedApiKeyId, ApiKey>(StructuralEqualityComparer<HashedApiKeyId>.Default);
+            }
+
+            if (!userData.ApiKeys.TryAdd(databaseCompatibleId, apiKey))
+            {
+                return UserActionResult<ApiKeyId>.Unsuccessful();
             }
 
             return UserActionResult<ApiKeyId>.Successful(userCompatibleId);

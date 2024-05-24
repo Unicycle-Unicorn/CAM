@@ -21,8 +21,10 @@ public class Program
         _ = builder.Services.AddControllers();
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         _ = builder.Services.AddEndpointsApiExplorer();
-        _ = builder.Services.AddSwaggerGen(config => config.OperationFilter<AuthAttribute<CredentialAuth>>());
 
+        _ = builder.Services.AddSwaggerGen(config => config.OperationFilter<AuthAttribute<CredentialAuth>>());
+        _ = builder.Services.AddSwaggerGen(config => config.OperationFilter<AuthAttribute<SessionAuth>>());
+        
         _ = builder.Services.AddAuthentication(NullAuthenticationHandler.RegisterWithBuilder);
 
         //builder.Services.AddSingleton(typeof(ICamInterface), new RemoteCamInterface("cam", "https://api.unicycleunicorn.net/cam"));
@@ -31,8 +33,8 @@ public class Program
             DefaultUserPermissions = new Permissions(new() {
                 { "cam", [Permission.LOGIN] }
             }),
-            SessionIdleTimeoutSeconds = 20 * 60, // 2 second idle timeout
-            SessionAbsoluteTimeoutSeconds = 500000, // 5 second absolute timeout
+            SessionIdleTimeoutSeconds = 20 * 60,
+            SessionAbsoluteTimeoutSeconds = 500000,
             PasswordHasher = new PasswordHasher(new()),
             ApiKeyIdGenerator = new IdGenerator(new()
             {
