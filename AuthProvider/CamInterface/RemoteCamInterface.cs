@@ -1,6 +1,5 @@
-﻿using System.Net.Http.Json;
+﻿namespace AuthProvider.CamInterface;
 
-namespace AuthProvider.CamInterface;
 public class RemoteCamInterface(string service, string url) : ICamInterface
 {
     private readonly HttpClient CamClient = new();

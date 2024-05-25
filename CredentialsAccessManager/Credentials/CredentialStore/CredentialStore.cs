@@ -42,7 +42,7 @@ public class CredentialStore(CredentialStoreConfiguration configuration) : ICred
             {
                 if (Configuration.PasswordHasher.Verify(password, userData.HashedPassword))
                 {
-                    return AuthorizationResult.Authenticated(userId);
+                    return AuthorizationResult.Authenticated(userId, userData.Username);
                 }
             }
         }
@@ -58,9 +58,9 @@ public class CredentialStore(CredentialStoreConfiguration configuration) : ICred
                 {
                     if (userData.Permissions.Contains(permission))
                     {
-                        return AuthorizationResult.Authorized(userId, permission);
+                        return AuthorizationResult.Authorized(userId, userData.Username, permission);
                     }
-                    return AuthorizationResult.Authenticated(userId);
+                    return AuthorizationResult.Authenticated(userId, userData.Username);
                 }
             }
         }
@@ -134,7 +134,7 @@ public class CredentialStore(CredentialStoreConfiguration configuration) : ICred
                     {
                         // Session is valid - refresh it and return
                         session.Refresh(currentTime + Configuration.SessionIdleTimeoutSeconds);
-                        return AuthorizationResult.Authenticated(parsedId.Value.userId);
+                        return AuthorizationResult.Authenticated(parsedId.Value.userId, userData.Username);
                     }
 
                     _ = userData.Sessions.Remove(parsedId.Value.databaseCompatibleId);
@@ -162,11 +162,11 @@ public class CredentialStore(CredentialStoreConfiguration configuration) : ICred
 
                         if (userData.Permissions.Contains(permission))
                         {
-                            return AuthorizationResult.Authorized(parsedId.Value.userId, permission);
+                            return AuthorizationResult.Authorized(parsedId.Value.userId, userData.Username, permission);
                         }
                         else
                         {
-                            return AuthorizationResult.Authenticated(parsedId.Value.userId);
+                            return AuthorizationResult.Authenticated(parsedId.Value.userId, userData.Username);
                         }
                     }
 
@@ -195,7 +195,7 @@ public class CredentialStore(CredentialStoreConfiguration configuration) : ICred
 
                         if (Configuration.PasswordHasher.Verify(password, userData.HashedPassword))
                         {
-                            return AuthorizationResult.Authenticated(parsedId.Value.userId);
+                            return AuthorizationResult.Authenticated(parsedId.Value.userId, userData.Username);
                         }
 
                     }
@@ -227,11 +227,11 @@ public class CredentialStore(CredentialStoreConfiguration configuration) : ICred
                         {
                             if (userData.Permissions.Contains(permission))
                             {
-                                return AuthorizationResult.Authorized(parsedId.Value.userId, permission);
+                                return AuthorizationResult.Authorized(parsedId.Value.userId, userData.Username, permission);
                             }
                             else
                             {
-                                return AuthorizationResult.Authenticated(parsedId.Value.userId);
+                                return AuthorizationResult.Authenticated(parsedId.Value.userId, userData.Username);
                             }
                         }
 
@@ -378,7 +378,7 @@ public class CredentialStore(CredentialStoreConfiguration configuration) : ICred
 
                     apiKey.Use(currentTime);
 
-                    return AuthorizationResult.Authenticated(parsedId.Value.userId);
+                    return AuthorizationResult.Authenticated(parsedId.Value.userId, userData.Username);
                 }
             }
         }
@@ -399,11 +399,11 @@ public class CredentialStore(CredentialStoreConfiguration configuration) : ICred
 
                     if (apiKey.Permissions.Contains(permission) && userData.Permissions.Contains(permission))
                     {
-                        return AuthorizationResult.Authorized(parsedId.Value.userId, permission);
+                        return AuthorizationResult.Authorized(parsedId.Value.userId, userData.Username, permission);
                     }
                     else
                     {
-                        return AuthorizationResult.Authenticated(parsedId.Value.userId);
+                        return AuthorizationResult.Authenticated(parsedId.Value.userId, userData.Username);
                     }
                 }
             }

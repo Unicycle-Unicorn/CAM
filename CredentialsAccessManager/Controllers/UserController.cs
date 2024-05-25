@@ -1,7 +1,7 @@
 using AuthProvider;
-using AuthProvider.Authentication;
+using AuthProvider.Authentication.Authorizers;
+using AuthProvider.AuthModelBinder;
 using AuthProvider.CamInterface;
-using AuthProvider.Utils;
 using CredentialsAccessManager.Credentials;
 using CredentialsAccessManager.Credentials.CredentialStore;
 using Microsoft.AspNetCore.Mvc;
@@ -33,13 +33,14 @@ void Login(string username, string password): incorrect pass or username (401)
 namespace CredentialsAccessManager.Controllers;
 [ApiController]
 [Route("[controller]/[action]")]
-public class UserController(ICamInterface camInterface, ICredentialStore credentialStore) : ControllerBase
+public class UserController(ILogger<UserController> logger, ICamInterface camInterface, ICredentialStore credentialStore) : ControllerBase
 {
+    private readonly ILogger Logger = logger;
     private readonly ICamInterface CamInterface = camInterface;
     private readonly ICredentialStore CredentialStore = credentialStore;
-
+    /*
     [HttpGet]
-    [Auth<SessionAuth>]
+    [Auth<CredentialAuth, SessionAuth>]
     public IActionResult TestGet()
     {
         return Ok();
@@ -51,6 +52,8 @@ public class UserController(ICamInterface camInterface, ICredentialStore credent
     public IActionResult CreateAccount([FromBody] UserCredentials userCredentials)
     {
         UserActionResult result = CredentialStore.CreateUser(userCredentials.Username, userCredentials.Password);
+        
+        // We could optionally log the user in here if we wanted but let's avoid that for now
 
         if (result.OperationSuccess)
             return Ok();
@@ -59,35 +62,40 @@ public class UserController(ICamInterface camInterface, ICredentialStore credent
             return Conflict();
         }
     }
-
+    */
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [Auth<CredentialAuth>(Permission.LOGIN)]
-    public IActionResult Login()
+    public IActionResult Login([FromAuth<AuthUserId>] Guid userId, [FromAuth<AuthType>] string type, [FromAuth<AuthUsername>] string username)
     {
-        Console.WriteLine("Inside Login method");
-
-        string sessionId = CredentialStore.CreateNewSession(HttpContext.Features.Get<Guid>()).Output;
-
-        CredentialStore.GetAllSessions(HttpContext.Features.Get<Guid>()).Output.ForEach(Console.WriteLine);
+        Logger.LogInformation($"FromAuth - userid: {userId}");
+        Logger.LogInformation($"FromAuth - type: {type}");
+        Logger.LogInformation($"FromAuth - username: {username}");
+        /*
+        Logger.LogInformation($"FromAuth - sessionId: {sessionId}");
+        Logger.LogInformation($"FromAuth - apikey: {apikey}");
+        Logger.LogInformation($"FromAuth - permission: {permission}");
+        Logger.LogInformation($"FromAuth - service: {service}");*/
+        /*
+        string sessionId = CredentialStore.CreateNewSession(userId).Output;
 
         // Shouldn't fail here unless something went horribly wrong
         _ = CSRFUtils.TryGenerateCSRF(sessionId, out string csrf);
 
-        Console.WriteLine($"Session Id: {sessionId}");
-        Console.WriteLine($"CSRF: {csrf}");
+        Logger.LogInformation($"Session Id: {sessionId}\nCSRF: {csrf}");
 
         CookieUtils.SetCookie(HttpContext.Response, CookieUtils.CSRF, csrf, CookieUtils.ScriptableCookieOptions);
         CookieUtils.SetCookie(HttpContext.Response, CookieUtils.Session, sessionId, CookieUtils.SecureCookieOptions);
-
+        */
         return Ok();
     }
     /*
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    //[Auth<>]
+    [Auth<SessionAuth>]
     public IActionResult Logout()
     {
+
         AuthorizationResult authResult = GetSession();
         SessionStore.RevokeSession(session.UserId, session.SessionId);
         SessionCookieUtils.RemoveSession(Response);

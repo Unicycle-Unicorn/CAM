@@ -1,6 +1,6 @@
 ﻿using Microsoft.OpenApi.Models;
 
-namespace AuthProvider.Authentication;
+namespace AuthProvider.Utils;
 
 internal static class OpenApiOperationExtensions
 {

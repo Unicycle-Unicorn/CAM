@@ -6,6 +6,7 @@ public class AuthorizationResult
     public bool IsAuthorized { get; protected set; }
     public (string service, string permission)? Permission { get; protected set; }
     public Guid? UserId { get; protected set; }
+    public string? Username { get; protected set; }
 
     public static AuthorizationResult Failed()
     {
@@ -18,30 +19,27 @@ public class AuthorizationResult
         };
     }
 
-    public static AuthorizationResult Authenticated(Guid userId)
+    public static AuthorizationResult Authenticated(Guid userId, string username)
     {
         return new AuthorizationResult()
         {
             IsAuthenticated = true,
             IsAuthorized = false,
             UserId = userId,
+            Username = username,
             Permission = null
         };
     }
 
-    public static AuthorizationResult Authorized(Guid userId, (string service, string permission) permission)
+    public static AuthorizationResult Authorized(Guid userId, string username, (string service, string permission) permission)
     {
         return new AuthorizationResult()
         {
             IsAuthenticated = true,
             IsAuthorized = true,
             UserId = userId,
+            Username = username,
             Permission = permission
         };
     }
-}
-
-public enum FailureCause
-{
-    
 }
