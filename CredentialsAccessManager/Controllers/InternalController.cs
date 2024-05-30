@@ -15,6 +15,12 @@ public class InternalController(ICamInterface camInterface, ICredentialStore cre
     {
         return Ok();
     }
+
+    [HttpGet]
+    public IActionResult TestGet2()
+    {
+        return Ok();
+    }
     /*
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

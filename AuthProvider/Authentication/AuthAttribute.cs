@@ -1,6 +1,8 @@
 ﻿using AuthProvider.Authentication.Authorizers;
 using AuthProvider.CamInterface;
 using AuthProvider.RuntimePrecheck;
+using AuthProvider.RuntimePrecheck.Context;
+using AuthProvider.RuntimePrecheck.Interfaces;
 using AuthProvider.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -10,10 +12,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using System.Reflection;
 namespace AuthProvider;
 
-[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
-public abstract class AuthAttribute : PrecheckMethodAttribute, IAsyncAuthorizationFilter
+[AttributeUsage( AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
+public abstract class AuthAttribute : PrecheckMethodAttribute, IActionPrecheckAttribute, IAsyncAuthorizationFilter
 {
     protected readonly string? Permission;
     protected readonly bool WithPermission;
@@ -22,6 +25,15 @@ public abstract class AuthAttribute : PrecheckMethodAttribute, IAsyncAuthorizati
     {
         WithPermission = false;
         Permission = null;
+    }
+
+    public virtual void RunActionPrecheck(ActionPrecheckContext context)
+    {
+        var attrs = context.MethodInfo.GetCustomAttributes<AuthAttribute>();
+        if (attrs.Count() > 1)
+        {
+            context.AddFatal("Cannot contain more than one [AuthAttribute<>]", $"Remove {attrs.Count() - 1} [AuthAttribute<>] from this action");
+        } 
     }
 
     public AuthAttribute(string permission)
@@ -225,5 +237,21 @@ public sealed class AuthAttribute<PrimaryAuthorizer, SecondaryAuthorizer> : Auth
 
         // Neither pased authentication, just return primary
         return primary;
+    }
+
+    public override void RunActionPrecheck(ActionPrecheckContext context)
+    {
+        if (typeof(PrimaryAuthorizer) == typeof(SecondaryAuthorizer))
+        {
+            context.AddWarning($"Should not have duplicate AuthAttribute generics but it's signature is [AuthAttribute<{typeof(PrimaryAuthorizer).Name}, {typeof(SecondaryAuthorizer).Name}>]", $"Consider using [AuthAttribute<{typeof(PrimaryAuthorizer).Name}>], or did you mean to have 2 different auth types?");
+        }
+
+        if (typeof(SecondaryAuthorizer) == typeof(SessionAuth))
+        {
+            context.AddSuggestion($"[AuthAttribute<{typeof(PrimaryAuthorizer).Name}, {typeof(SecondaryAuthorizer).Name}>] may provide better results if it's PrimaryAuthorizer is of type {typeof(SecondaryAuthorizer).Name} due to authorization short circuiting as sessions are more widely used", $"Consider changing this to [AuthAttribute<{typeof(SecondaryAuthorizer).Name}, {typeof(PrimaryAuthorizer).Name}>]");
+        }
+
+        base.RunActionPrecheck(context);
+        // Consider adding more checks like compatibility like StrictSession w/ Session
     }
 }

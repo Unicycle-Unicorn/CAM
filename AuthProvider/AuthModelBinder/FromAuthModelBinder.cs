@@ -1,9 +1,9 @@
-﻿using AuthProvider.Utils;
+﻿using AuthProvider.RuntimePrecheck.Context;
+using AuthProvider.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Reflection;
 
 namespace AuthProvider.AuthModelBinder;
@@ -40,11 +40,19 @@ public abstract class FromAuthModelBinder<T> : IFromAuthModelBinder
     {
         if (parameter.ParameterType != typeof(T))
         {
-            logger.LogError($"{action!.DisplayName} parameter type mismatch. [FromAuth<{AuthType.Name}>] returns {typeof(T).Name}, however the method parameter is '{parameter.ParameterType.Name} {parameter.Name}' ");
+            logger.LogError($"FromAuth<{AuthType.Name}>] returns {typeof(T).Name}, however the method parameter is '{parameter.ParameterType.Name} {parameter.Name}' ");
             return true;
         }
 
         return false;
+    }
+
+    public static void RunPrecheck(ParameterPrecheckContext context, Type authType)
+    {
+        if (context.ParameterInfo.ParameterType != typeof(T))
+        {
+            context.AddFatal($"Parameter type mismatch. [FromAuth<{authType.Name}>] returns {typeof(T).Name} however the method parameter is expecting {context.ParameterInfo.ParameterType.Name}", $"Change the parameter type from {context.ParameterInfo.ParameterType.Name} to {typeof(T).Name}");
+        }
     }
 }
 

@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AuthProvider.RuntimePrecheck.Context;
+using AuthProvider.RuntimePrecheck.Interfaces;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
@@ -15,10 +17,11 @@ public abstract class FromAuthAttribute(Type type) : ModelBinderAttribute(type)
     public new BindingSource BindingSource => FromAuthBindingSource;
 
     public abstract bool PreCheck(ControllerActionDescriptor action, ILogger logger, HashSet<Type> availableFromAuthTypes, ParameterInfo parameterInfo);
+    
 }
 
 [AttributeUsage(AttributeTargets.Parameter)]
-public class FromAuthAttribute<T> : FromAuthAttribute, IBindingSourceMetadata where T : IFromAuthModelBinder
+public class FromAuthAttribute<T> : FromAuthAttribute, IParameterPrecheckAttribute, IBindingSourceMetadata where T : IFromAuthModelBinder
 {
     public FromAuthAttribute() : base(typeof(T)) { }
 
@@ -37,5 +40,24 @@ public class FromAuthAttribute<T> : FromAuthAttribute, IBindingSourceMetadata wh
         }
 
         return shouldError;
+    }
+
+    public void RunParameterPrecheck(ParameterPrecheckContext context)
+    {
+        var attributes = context.ParentAction.MethodInfo.GetCustomAttributes<AuthAttribute>();
+
+        HashSet<Type> availableFromAuthTypes = [];
+
+        foreach (var attribute in attributes)
+        {
+            availableFromAuthTypes.UnionWith(attribute.GetFromAuthAvailableTypes());
+        }
+
+        if (!availableFromAuthTypes.Contains(typeof(T)))
+        {
+            context.AddFatal($"[FromAuth<{typeof(T).Name}>] is not provided by the current authentication scheme", "Change the authentication scheme or remove this parameter");
+        }
+
+        T.RunPrecheck(context, typeof(T));
     }
 }
