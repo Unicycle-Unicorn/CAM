@@ -1,4 +1,3 @@
-using AuthProvider;
 using AuthProvider.Authentication;
 using AuthProvider.CamInterface;
 using AuthProvider.RuntimePrecheck;
@@ -19,7 +18,7 @@ public class Program
 
         // Add services to the container.
         _ = builder.Services.AddControllers();
-        
+
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         _ = builder.Services.AddEndpointsApiExplorer();
 
@@ -49,13 +48,13 @@ public class Program
         _ = builder.Services.AddSingleton(typeof(ICredentialStore), credentialStore);
         var camService = new LocalCamInterface("cam", credentialStore);
         _ = builder.Services.AddSingleton(typeof(ICamInterface), camService);
-        
+
         _ = builder.Services.AddLogging();
 
-        
+
 
         WebApplication app = builder.Build();
-        
+
         // First thing we want to do is run a check of all actions everywhere to find possible issues
         RuntimePrechecker.RunPrecheck(app);
 
@@ -68,7 +67,7 @@ public class Program
         }
 
         _ = app.UseAuthorization();
-       
+
         _ = app.MapControllers();
 
         await camService.Initialize();

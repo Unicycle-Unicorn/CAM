@@ -1,7 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
-using Newtonsoft.Json.Linq;
 using System.Diagnostics.CodeAnalysis;
-using System.Xml.Linq;
 
 namespace AuthProvider.Utils;
 public static class CookieUtils
@@ -28,7 +26,7 @@ public static class CookieUtils
     public static bool TryGetCookie(HttpRequest request, string name, [NotNullWhen(true)] out string? result)
     {
         result = null;
-        
+
         if (request.Cookies.TryGetValue(name, out string? value))
         {
             if (!string.IsNullOrEmpty(value))

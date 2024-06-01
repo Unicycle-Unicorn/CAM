@@ -4,9 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Reflection;
-using System.Reflection.Metadata;
 
 namespace AuthProvider.AuthModelBinder;
 
@@ -17,7 +15,7 @@ public abstract class FromAuthAttribute(Type type) : ModelBinderAttribute(type)
     public new BindingSource BindingSource => FromAuthBindingSource;
 
     public abstract bool PreCheck(ControllerActionDescriptor action, ILogger logger, HashSet<Type> availableFromAuthTypes, ParameterInfo parameterInfo);
-    
+
 }
 
 [AttributeUsage(AttributeTargets.Parameter)]
@@ -35,7 +33,8 @@ public class FromAuthAttribute<T> : FromAuthAttribute, IParameterPrecheckAttribu
             shouldError = true;
         }
 
-        if (T.PreCheck(action, logger, parameter, typeof(T))) {
+        if (T.PreCheck(action, logger, parameter, typeof(T)))
+        {
             shouldError = true;
         }
 

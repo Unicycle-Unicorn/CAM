@@ -12,12 +12,13 @@ public static class CSRFUtils
             byte[] rawCSRF = SHA256.HashData(rawSessionId);
             csrf = Convert.ToBase64String(rawCSRF);
             return true;
-        } catch
+        }
+        catch
         {
             csrf = "";
             return false;
         }
-        
+
     }
 
     public static bool VerifyCSRF(string sessionId, string csrf) => TryGenerateCSRF(sessionId, out string expected) && csrf == expected;

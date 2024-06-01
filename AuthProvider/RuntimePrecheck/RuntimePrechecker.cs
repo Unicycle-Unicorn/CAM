@@ -1,9 +1,5 @@
-﻿using AuthProvider.AuthModelBinder;
-using AuthProvider.RuntimePrecheck.Context;
+﻿using AuthProvider.RuntimePrecheck.Context;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Mvc.Controllers;
-using Microsoft.Extensions.Logging;
-using System.Reflection;
 
 namespace AuthProvider.RuntimePrecheck;
 

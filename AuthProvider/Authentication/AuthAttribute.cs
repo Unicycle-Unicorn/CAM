@@ -1,21 +1,18 @@
 ﻿using AuthProvider.Authentication.Authorizers;
 using AuthProvider.CamInterface;
-using AuthProvider.RuntimePrecheck;
 using AuthProvider.RuntimePrecheck.Context;
 using AuthProvider.RuntimePrecheck.Interfaces;
 using AuthProvider.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Reflection;
 namespace AuthProvider;
 
-[AttributeUsage( AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
 public abstract class AuthAttribute : Attribute, IActionPrecheckAttribute, IAsyncAuthorizationFilter
 {
     protected readonly string? Permission;
@@ -33,7 +30,7 @@ public abstract class AuthAttribute : Attribute, IActionPrecheckAttribute, IAsyn
         if (attrs.Count() > 1)
         {
             context.AddFatal("Cannot contain more than one [AuthAttribute<>]", $"Remove {attrs.Count() - 1} [AuthAttribute<>] from this action");
-        } 
+        }
     }
 
     public AuthAttribute(string permission)
@@ -66,7 +63,7 @@ public abstract class AuthAttribute : Attribute, IActionPrecheckAttribute, IAsyn
 
         if (WithPermission)
         {
-            result = await AuthorizeAsync(context.HttpContext); 
+            result = await AuthorizeAsync(context.HttpContext);
         }
         else
         {
@@ -109,7 +106,8 @@ public sealed class AuthAttribute<PrimaryAuthorizer> : AuthAttribute where Prima
         if (WithPermission)
         {
             return [.. PrimaryAuthorizer.ProvidedItemsDuringAuthorization()];
-        } else
+        }
+        else
         {
             return [.. PrimaryAuthorizer.ProvidedItemsDuringAuthentication()];
         }
@@ -145,7 +143,7 @@ public sealed class AuthAttribute<PrimaryAuthorizer, SecondaryAuthorizer> : Auth
         {
             var p = PrimaryAuthorizer.ProvidedItemsDuringAuthorization();
             var s = SecondaryAuthorizer.ProvidedItemsDuringAuthorization();
-            return [.. p, ..s];
+            return [.. p, .. s];
         }
         else
         {
@@ -155,9 +153,9 @@ public sealed class AuthAttribute<PrimaryAuthorizer, SecondaryAuthorizer> : Auth
         }
     }
 
-    public AuthAttribute() : base() {}
+    public AuthAttribute() : base() { }
 
-    public AuthAttribute(string permission) : base(permission) {}
+    public AuthAttribute(string permission) : base(permission) { }
 
     protected override void GenerateAuthorizerSwagger(OpenApiOperation operation, OperationFilterContext context)
     {
@@ -170,7 +168,7 @@ public sealed class AuthAttribute<PrimaryAuthorizer, SecondaryAuthorizer> : Auth
         ICamInterface camInterface = context.RequestServices.GetService<ICamInterface>()!;
 
         (AuthorizationResult authResult, Action addItems) primary = await PrimaryAuth.AuthenticateAsync(context, camInterface);
-        
+
         if (primary.authResult.IsAuthenticated)
         {
             // Primary authentication passed, we don't need to try the secondary option
@@ -201,7 +199,7 @@ public sealed class AuthAttribute<PrimaryAuthorizer, SecondaryAuthorizer> : Auth
         }
 
         // Need to choose the one that atleast passed authentication
-        
+
         if (primary.authResult.IsAuthenticated)
         {
             // Return primary because it passed authentication

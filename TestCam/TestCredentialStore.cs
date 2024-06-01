@@ -107,7 +107,7 @@ public class TestCredentialStore
         AuthorizationResult result = CredentialStore.AuthorizeCredentials("new user", "some password", (service_cam, permission_login));
 
         UserActionResult<Guid> getIdResult = CredentialStore.GetUserIdFromUsername("new user");
-        
+
         getIdResult.AssertSuccessfull();
         result.AssertAuthorized(getIdResult.Output, (service_cam, permission_login));
     }
@@ -132,7 +132,7 @@ public class TestCredentialStore
         created.AssertSuccessfull();
 
         AuthorizationResult result = CredentialStore.AuthorizeCredentials("new user", "some password", ("no", permission_login));
-        
+
         UserActionResult<Guid> getIdResult = CredentialStore.GetUserIdFromUsername("new user");
         getIdResult.AssertSuccessfull();
         result.AssertAuthenticated(getIdResult.Output);
@@ -158,7 +158,7 @@ public class TestCredentialStore
         result.AssertAnonomyous();
     }
 
-    
+
 }
 
 internal static class UserActionResultExtensions
