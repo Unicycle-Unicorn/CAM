@@ -16,7 +16,7 @@ using System.Reflection;
 namespace AuthProvider;
 
 [AttributeUsage( AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
-public abstract class AuthAttribute : PrecheckMethodAttribute, IActionPrecheckAttribute, IAsyncAuthorizationFilter
+public abstract class AuthAttribute : Attribute, IActionPrecheckAttribute, IAsyncAuthorizationFilter
 {
     protected readonly string? Permission;
     protected readonly bool WithPermission;
@@ -131,8 +131,6 @@ public sealed class AuthAttribute<PrimaryAuthorizer> : AuthAttribute where Prima
         ICamInterface camInterface = context.RequestServices.GetService<ICamInterface>()!;
         return await Auth.AuthorizeAsync(context, camInterface, Permission!);
     }
-
-    public override bool PreCheck(ControllerActionDescriptor action, ILogger logger) => false;
 }
 
 
@@ -155,25 +153,6 @@ public sealed class AuthAttribute<PrimaryAuthorizer, SecondaryAuthorizer> : Auth
             var s = SecondaryAuthorizer.ProvidedItemsDuringAuthentication();
             return [.. p, .. s];
         }
-    }
-
-    public override bool PreCheck(ControllerActionDescriptor action, ILogger logger)
-    {
-        bool shouldError = false;
-        if (typeof(PrimaryAuthorizer) == typeof(SecondaryAuthorizer))
-        {
-            logger.LogError($"{action!.DisplayName} should not have duplicate AuthAttribute generics but it's signature is AuthAttribute<{typeof(PrimaryAuthorizer).Name}, {typeof(SecondaryAuthorizer).Name}>");
-            return true;
-        }
-
-        if (typeof(SecondaryAuthorizer) == typeof(SessionAuth))
-        {
-            logger.LogWarning($"{action!.DisplayName} may provide better results if it's PrimaryAuthorizer is of type {typeof(SecondaryAuthorizer).Name} due to authorization short circuiting. ie: AuthAttribute<{typeof(SecondaryAuthorizer).Name}, {typeof(PrimaryAuthorizer).Name}>");
-        }
-
-        // Consider adding more checks like compatibility like StrictSession w/ Session
-
-        return shouldError;
     }
 
     public AuthAttribute() : base() {}

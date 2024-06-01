@@ -66,7 +66,7 @@ public class UserController(ILogger<UserController> logger, ICamInterface camInt
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [Auth<CredentialAuth>(Permission.LOGIN)]
-    public IActionResult Login([FromAuth<AuthUserId>] Guid userId, [FromAuth<AuthType>] string type, [FromAuth<AuthUsername>] string username)
+    public int Login([FromAuth<AuthUserId>] Guid userId, [FromAuth<AuthType>] string type, [FromAuth<AuthUsername>] string username)
     {
         Logger.LogInformation($"FromAuth - userid: {userId}");
         Logger.LogInformation($"FromAuth - type: {type}");
@@ -87,7 +87,7 @@ public class UserController(ILogger<UserController> logger, ICamInterface camInt
         CookieUtils.SetCookie(HttpContext.Response, CookieUtils.CSRF, csrf, CookieUtils.ScriptableCookieOptions);
         CookieUtils.SetCookie(HttpContext.Response, CookieUtils.Session, sessionId, CookieUtils.SecureCookieOptions);
         */
-        return Ok();
+        return 4;
     }
     /*
     [HttpPost]
