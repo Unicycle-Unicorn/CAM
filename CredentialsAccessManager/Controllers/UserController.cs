@@ -62,21 +62,12 @@ public class UserController(ILogger<UserController> logger, ICamInterface camInt
     [Auth<CredentialAuth>(Permission.LOGIN)]
     public void Login([FromAuth<AuthUserId>] Guid userId, [FromAuth<AuthType>] string type, [FromAuth<AuthUsername>] string username)
     {
-        Logger.LogInformation($"FromAuth - userid: {userId}");
-        Logger.LogInformation($"FromAuth - type: {type}");
-        Logger.LogInformation($"FromAuth - username: {username}");
-        /*
-        Logger.LogInformation($"FromAuth - sessionId: {sessionId}");
-        Logger.LogInformation($"FromAuth - apikey: {apikey}");
-        Logger.LogInformation($"FromAuth - permission: {permission}");
-        Logger.LogInformation($"FromAuth - service: {service}");*/
-        
         string sessionId = CredentialStore.CreateNewSession(userId).Output;
 
         // Shouldn't fail here unless something went horribly wrong
         _ = CSRFUtils.TryGenerateCSRF(sessionId, out string csrf);
 
-        Logger.LogInformation($"Session Id: {sessionId}\nCSRF: {csrf}");
+        Logger.LogInformation($"FromAuth - userid: {userId}\nFromAuth - type: {type}\nFromAuth - username: {username}\nSession Id: {sessionId}\nCSRF: {csrf}");
 
         // Set the user's CSRF token
         CookieUtils.SetCookie(HttpContext.Response, CookieUtils.CSRF, csrf, CookieUtils.ScriptableCookieOptions);
@@ -92,10 +83,9 @@ public class UserController(ILogger<UserController> logger, ICamInterface camInt
     {
         var result = CredentialStore.RevokeSessionBySessionId(sessionId);
         Console.WriteLine(result);
-        // CookieUtils.RemoveCookie(HttpContext.Response, CookieUtils.Session);
+        CookieUtils.RemoveCookie(HttpContext.Response, CookieUtils.Session);
         return Ok();
     }
-
     
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -104,7 +94,7 @@ public class UserController(ILogger<UserController> logger, ICamInterface camInt
     {
         var result = CredentialStore.RevokeAllSessions(userId);
         Console.WriteLine(result);
-        // CookieUtils.RemoveCookie(HttpContext.Response, CookieUtils.Session);
+        CookieUtils.RemoveCookie(HttpContext.Response, CookieUtils.Session);
         return Ok();
     }
     /*
