@@ -1,28 +1,28 @@
-using CredentialsAccessManager.Models;
-using CredentialsAccessManager.Session;
-using CredentialsAccessManager.User;
+using AuthProvider.CamInterface;
+using CredentialsAccessManager.Credentials.CredentialStore;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CredentialsAccessManager.Controllers;
 [ApiController]
 [Route("[controller]/[action]")]
-public class InternalController : ControllerBase
+public class InternalController(ICamInterface camInterface, ICredentialStore credentialStore) : ControllerBase
 {
-    private readonly IUserStore UserStore;
-    private readonly ISessionStore SessionStore;
-
-    public InternalController(IUserStore userStore, ISessionStore sessionStore)
-    {
-        UserStore = userStore;
-        SessionStore = sessionStore;
-    }
+    private readonly ICamInterface CamInterface = camInterface;
+    private readonly ICredentialStore CredentialStore = credentialStore;
 
     [HttpGet]
     public IActionResult TestGet()
     {
+        throw new NotImplementedException();
         return Ok();
     }
 
+    [HttpGet]
+    public IActionResult TestGet2()
+    {
+        return Ok();
+    }
+    /*
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
@@ -63,5 +63,5 @@ public class InternalController : ControllerBase
             return Forbid();
         }
         return Unauthorized();
-    }
+    }*/
 }

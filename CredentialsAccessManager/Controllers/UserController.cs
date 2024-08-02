@@ -1,7 +1,9 @@
 using AuthProvider;
-using CredentialsAccessManager.Models;
-using CredentialsAccessManager.Session;
-using CredentialsAccessManager.User;
+using AuthProvider.Authentication.Authorizers;
+using AuthProvider.AuthModelBinder;
+using AuthProvider.CamInterface;
+using CredentialsAccessManager.Credentials;
+using CredentialsAccessManager.Credentials.CredentialStore;
 using Microsoft.AspNetCore.Mvc;
 
 /*
@@ -31,63 +33,76 @@ void Login(string username, string password): incorrect pass or username (401)
 namespace CredentialsAccessManager.Controllers;
 [ApiController]
 [Route("[controller]/[action]")]
-public class UserController : ControllerBase
+public class UserController(ILogger<UserController> logger, ICamInterface camInterface, ICredentialStore credentialStore) : ControllerBase
 {
-    private readonly IUserStore UserStore;
-    private readonly ISessionStore SessionStore;
-
-    public UserController(IUserStore userStore, ISessionStore sessionStore)
-    {
-        UserStore = userStore;
-        SessionStore = sessionStore;
-    }
-
+    private readonly ILogger Logger = logger;
+    private readonly ICamInterface CamInterface = camInterface;
+    private readonly ICredentialStore CredentialStore = credentialStore;
+    /*
     [HttpGet]
+    [Auth<CredentialAuth, SessionAuth>]
     public IActionResult TestGet()
     {
         return Ok();
     }
 
     [HttpPost]
-    [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public IActionResult CreateAccount([FromBody] UserCredentials userCredentials) => UserStore.CreateUser(userCredentials.Username, userCredentials.Password, new UserInformation()) ? Ok() : Conflict();
-
-    [HttpPost]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    public IActionResult Login([FromBody] UserCredentials userCredentials)
+    public IActionResult CreateAccount([FromBody] UserCredentials userCredentials)
     {
-        if (UserStore.AttemptLogin(userCredentials.Username, userCredentials.Password, out Guid userId))
+        UserActionResult result = CredentialStore.CreateUser(userCredentials.Username, userCredentials.Password);
+        
+        // We could optionally log the user in here if we wanted but let's avoid that for now
+
+        if (result.OperationSuccess)
+            return Ok();
+        else
         {
-            if (UserStore.HasPermission(userId, RegistrationService.Service, Permission.LOGIN))
-            {
-                SessionCredentials session = SessionStore.CreateNewSession(userId);
-
-                SessionCookieUtils.AttachSession(Response, session);
-
-                return Ok();
-            }
-
-            return Forbid();
+            return Conflict();
         }
-
-        return Unauthorized();
     }
-
+    */
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [CustomAuthorization]
+    [Auth<CredentialAuth>(Permission.LOGIN)]
+    public int Login([FromAuth<AuthUserId>] Guid userId, [FromAuth<AuthType>] string type, [FromAuth<AuthUsername>] string username)
+    {
+        Logger.LogInformation($"FromAuth - userid: {userId}");
+        Logger.LogInformation($"FromAuth - type: {type}");
+        Logger.LogInformation($"FromAuth - username: {username}");
+        /*
+        Logger.LogInformation($"FromAuth - sessionId: {sessionId}");
+        Logger.LogInformation($"FromAuth - apikey: {apikey}");
+        Logger.LogInformation($"FromAuth - permission: {permission}");
+        Logger.LogInformation($"FromAuth - service: {service}");*/
+        /*
+        string sessionId = CredentialStore.CreateNewSession(userId).Output;
+
+        // Shouldn't fail here unless something went horribly wrong
+        _ = CSRFUtils.TryGenerateCSRF(sessionId, out string csrf);
+
+        Logger.LogInformation($"Session Id: {sessionId}\nCSRF: {csrf}");
+
+        CookieUtils.SetCookie(HttpContext.Response, CookieUtils.CSRF, csrf, CookieUtils.ScriptableCookieOptions);
+        CookieUtils.SetCookie(HttpContext.Response, CookieUtils.Session, sessionId, CookieUtils.SecureCookieOptions);
+        */
+        return 4;
+    }
+    /*
+    [HttpPost]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [Auth<SessionAuth>]
     public IActionResult Logout()
     {
-        SessionCredentials session = GetSession();
+
+        AuthorizationResult authResult = GetSession();
         SessionStore.RevokeSession(session.UserId, session.SessionId);
         SessionCookieUtils.RemoveSession(Response);
         return Ok();
-    }
+    }*/
 
+    /*
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [CustomAuthorization]
@@ -128,7 +143,5 @@ public class UserController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [CustomAuthorization(Permission.READ_SELF)]
     public IActionResult GetPermissions() => throw new NotImplementedException();
-
-    [NonAction]
-    public SessionCredentials GetSession() => HttpContext.Features.Get<SessionCredentials>();
+    */
 }

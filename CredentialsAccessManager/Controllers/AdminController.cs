@@ -1,5 +1,5 @@
-using CredentialsAccessManager.Session;
-using CredentialsAccessManager.User;
+using AuthProvider.CamInterface;
+using CredentialsAccessManager.Credentials.CredentialStore;
 using Microsoft.AspNetCore.Mvc;
 
 /*
@@ -22,15 +22,8 @@ All endpoints can result in:
 namespace CredentialsAccessManager.Controllers;
 [ApiController]
 [Route("[controller]/[action]")]
-public class AdminController : ControllerBase
+public class AdminController(ICamInterface camInterface, ICredentialStore credentialStore) : ControllerBase
 {
-    private readonly IUserStore UserStore;
-    private readonly ISessionStore SessionStore;
-
-    public AdminController(IUserStore userStore, ISessionStore sessionStore)
-    {
-        UserStore = userStore;
-        SessionStore = sessionStore;
-    }
-
+    private readonly ICamInterface CamInterface = camInterface;
+    private readonly ICredentialStore CredentialStore = credentialStore;
 }
