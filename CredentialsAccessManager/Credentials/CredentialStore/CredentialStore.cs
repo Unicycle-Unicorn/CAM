@@ -13,11 +13,17 @@ using Username = string;
 
 namespace CredentialsAccessManager.Credentials.CredentialStore;
 
-public class CredentialStore(CredentialStoreConfiguration configuration) : ICredentialStore
+public class CredentialStore : ICredentialStore
 {
     private readonly ConcurrentDictionary<UserId, UserData> UserIdsToUserData = [];
     private readonly ConcurrentDictionary<Username, UserId> UsernamesToUserIds = new(StringComparer.OrdinalIgnoreCase);
-    private readonly CredentialStoreConfiguration Configuration = configuration;
+    private readonly CredentialStoreConfiguration Configuration;
+
+    public CredentialStore(CredentialStoreConfiguration configuration)
+    {
+        Configuration = configuration;
+        _ = CreateUser("Admin", "password");
+    }
 
     #region User
     public UserActionResult<UserId> CreateUser(Username username, Password password)
@@ -198,9 +204,10 @@ public class CredentialStore(CredentialStoreConfiguration configuration) : ICred
                             return AuthorizationResult.Authenticated(parsedId.Value.userId, userData.Username);
                         }
 
+                    } else
+                    {
+                        _ = userData.Sessions.Remove(parsedId.Value.databaseCompatibleId);
                     }
-
-                    _ = userData.Sessions.Remove(parsedId.Value.databaseCompatibleId);
                 }
             }
         }
@@ -235,9 +242,10 @@ public class CredentialStore(CredentialStoreConfiguration configuration) : ICred
                             }
                         }
 
+                    } else
+                    {
+                        _ = userData.Sessions.Remove(parsedId.Value.databaseCompatibleId);
                     }
-
-                    _ = userData.Sessions.Remove(parsedId.Value.databaseCompatibleId);
                 }
             }
         }

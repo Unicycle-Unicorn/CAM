@@ -1,3 +1,6 @@
+using AuthProvider;
+using AuthProvider.Authentication.Authorizers;
+using AuthProvider.AuthModelBinder;
 using AuthProvider.CamInterface;
 using CredentialsAccessManager.Credentials.CredentialStore;
 using Microsoft.AspNetCore.Mvc;
@@ -11,15 +14,17 @@ public class InternalController(ICamInterface camInterface, ICredentialStore cre
     private readonly ICredentialStore CredentialStore = credentialStore;
 
     [HttpGet]
-    public IActionResult TestGet()
+    public IActionResult TestKnownError()
     {
         throw new NotImplementedException();
         return Ok();
     }
 
     [HttpGet]
-    public IActionResult TestGet2()
+    [AuthAttribute<SessionAuth>]
+    public IActionResult TestSessioned([FromAuth<AuthSessionId>] string sessionId)
     {
+        Console.WriteLine($"Session Id: {sessionId}");
         return Ok();
     }
     /*

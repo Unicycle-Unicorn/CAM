@@ -2,6 +2,7 @@ using AuthProvider;
 using AuthProvider.Authentication.Authorizers;
 using AuthProvider.AuthModelBinder;
 using AuthProvider.CamInterface;
+using AuthProvider.Utils;
 using CredentialsAccessManager.Credentials;
 using CredentialsAccessManager.Credentials.CredentialStore;
 using Microsoft.AspNetCore.Mvc;
@@ -38,13 +39,6 @@ public class UserController(ILogger<UserController> logger, ICamInterface camInt
     private readonly ILogger Logger = logger;
     private readonly ICamInterface CamInterface = camInterface;
     private readonly ICredentialStore CredentialStore = credentialStore;
-    /*
-    [HttpGet]
-    [Auth<CredentialAuth, SessionAuth>]
-    public IActionResult TestGet()
-    {
-        return Ok();
-    }
 
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -62,11 +56,11 @@ public class UserController(ILogger<UserController> logger, ICamInterface camInt
             return Conflict();
         }
     }
-    */
+    
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [Auth<CredentialAuth>(Permission.LOGIN)]
-    public int Login([FromAuth<AuthUserId>] Guid userId, [FromAuth<AuthType>] string type, [FromAuth<AuthUsername>] string username)
+    public void Login([FromAuth<AuthUserId>] Guid userId, [FromAuth<AuthType>] string type, [FromAuth<AuthUsername>] string username)
     {
         Logger.LogInformation($"FromAuth - userid: {userId}");
         Logger.LogInformation($"FromAuth - type: {type}");
@@ -76,7 +70,7 @@ public class UserController(ILogger<UserController> logger, ICamInterface camInt
         Logger.LogInformation($"FromAuth - apikey: {apikey}");
         Logger.LogInformation($"FromAuth - permission: {permission}");
         Logger.LogInformation($"FromAuth - service: {service}");*/
-        /*
+        
         string sessionId = CredentialStore.CreateNewSession(userId).Output;
 
         // Shouldn't fail here unless something went horribly wrong
@@ -84,64 +78,64 @@ public class UserController(ILogger<UserController> logger, ICamInterface camInt
 
         Logger.LogInformation($"Session Id: {sessionId}\nCSRF: {csrf}");
 
+        // Set the user's CSRF token
         CookieUtils.SetCookie(HttpContext.Response, CookieUtils.CSRF, csrf, CookieUtils.ScriptableCookieOptions);
+
+        // Set the user's Session token
         CookieUtils.SetCookie(HttpContext.Response, CookieUtils.Session, sessionId, CookieUtils.SecureCookieOptions);
-        */
-        return 4;
     }
-    /*
+
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [Auth<SessionAuth>]
-    public IActionResult Logout()
+    public IActionResult Logout([FromAuth<AuthSessionId>] string sessionId)
     {
-
-        AuthorizationResult authResult = GetSession();
-        SessionStore.RevokeSession(session.UserId, session.SessionId);
-        SessionCookieUtils.RemoveSession(Response);
-        return Ok();
-    }*/
-
-    /*
-    [HttpPost]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [CustomAuthorization]
-    public IActionResult LogoutAll()
-    {
-        SessionCredentials session = GetSession();
-        SessionStore.RevokeAllSessions(session.UserId);
-        SessionCookieUtils.RemoveSession(Response);
+        var result = CredentialStore.RevokeSessionBySessionId(sessionId);
+        Console.WriteLine(result);
+        // CookieUtils.RemoveCookie(HttpContext.Response, CookieUtils.Session);
         return Ok();
     }
 
+    
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [CustomAuthorization(Permission.WRITE_SELF)]
+    [Auth<StrictSessionAuth>]
+    public IActionResult LogoutAll([FromAuth<AuthUserId>] Guid userId)
+    {
+        var result = CredentialStore.RevokeAllSessions(userId);
+        Console.WriteLine(result);
+        // CookieUtils.RemoveCookie(HttpContext.Response, CookieUtils.Session);
+        return Ok();
+    }
+    /*
+    [HttpPost]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [Auth(Permission.WRITE_SELF)]
     public IActionResult UpdateUsername() => throw new NotImplementedException();
 
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [CustomAuthorization(Permission.WRITE_SELF)]
+    [Auth(Permission.WRITE_SELF)]
     public IActionResult UpdatePassword() => throw new NotImplementedException();
 
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [CustomAuthorization(Permission.WRITE_SELF)]
+    [Auth(Permission.WRITE_SELF)]
     public IActionResult UpdateUserInfo() => throw new NotImplementedException();
 
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [CustomAuthorization(Permission.READ_SELF)]
+    [Auth(Permission.READ_SELF)]
     public IActionResult GetActiveSessions() => throw new NotImplementedException();
 
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [CustomAuthorization(Permission.READ_SELF)]
+    [Auth(Permission.READ_SELF)]
     public IActionResult GetUserInfo() => throw new NotImplementedException();
 
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [CustomAuthorization(Permission.READ_SELF)]
+    [Auth(Permission.READ_SELF)]
     public IActionResult GetPermissions() => throw new NotImplementedException();
     */
 }
