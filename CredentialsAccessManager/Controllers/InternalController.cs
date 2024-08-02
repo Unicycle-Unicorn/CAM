@@ -13,6 +13,7 @@ public class InternalController(ICamInterface camInterface, ICredentialStore cre
     [HttpGet]
     public IActionResult TestGet()
     {
+        throw new NotImplementedException();
         return Ok();
     }
 

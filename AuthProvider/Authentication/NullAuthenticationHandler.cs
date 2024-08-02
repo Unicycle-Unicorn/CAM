@@ -8,7 +8,7 @@ namespace AuthProvider.Authentication;
 public class NullAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock) : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder, clock)
 {
     private const string Name = "NullAuthentication";
-    private const string DisplayName = "Null Authentication Handler";
+    private const string DisplayName = "Null Authentication Exceptions";
 
     public static void RegisterWithBuilder(AuthenticationOptions options)
     {

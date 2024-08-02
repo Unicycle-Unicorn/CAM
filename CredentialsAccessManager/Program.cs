@@ -1,5 +1,6 @@
 using AuthProvider.Authentication;
 using AuthProvider.CamInterface;
+using AuthProvider.Exceptions;
 using AuthProvider.RuntimePrecheck;
 using AuthProvider.Swagger;
 using CredentialsAccessManager.CamInterface;
@@ -25,6 +26,9 @@ public class Program
         _ = builder.Services.AddSwaggerGen(config => config.OperationFilter<SwaggerAuth>());
 
         _ = builder.Services.AddAuthentication(NullAuthenticationHandler.RegisterWithBuilder);
+        
+        _ = builder.Services.AddExceptionHandler<UuidExceptionHandler>();
+        _ = builder.Services.AddProblemDetails();
 
         //builder.Services.AddSingleton(typeof(ICamInterface), new RemoteCamInterface("cam", "https://api.unicycleunicorn.net/cam"));
         var credentialStore = new CredentialStore(new()
@@ -49,10 +53,6 @@ public class Program
         var camService = new LocalCamInterface("cam", credentialStore);
         _ = builder.Services.AddSingleton(typeof(ICamInterface), camService);
 
-        _ = builder.Services.AddLogging();
-
-
-
         WebApplication app = builder.Build();
 
         // First thing we want to do is run a check of all actions everywhere to find possible issues
@@ -67,7 +67,7 @@ public class Program
         }
 
         _ = app.UseAuthorization();
-
+        _ = app.UseExceptionHandler();
         _ = app.MapControllers();
 
         await camService.Initialize();

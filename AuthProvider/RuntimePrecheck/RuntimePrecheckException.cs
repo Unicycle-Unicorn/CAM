@@ -1,2 +1,2 @@
 ﻿namespace AuthProvider.RuntimePrecheck;
-public class RuntimePrecheckException() : Exception() { }
+public class RuntimePrecheckException() : System.Exception() { }

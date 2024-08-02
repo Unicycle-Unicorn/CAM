@@ -19,7 +19,7 @@ public abstract class FromAuthModelBinder<T> : IFromAuthModelBinder
         }
         else
         {
-            throw new Exception($"Failed to bind {typeof(T).Name} to {bindingContext.ModelType.Name} for {bindingContext.FieldName} due to a type mismatch occuring in request method: '{bindingContext.ActionContext.ActionDescriptor.DisplayName}'. [FromAuth<{GetType().Name}>] should be bound on a {typeof(T).Name} instead of {bindingContext.ModelType.Name}");
+            throw new System.Exception($"Failed to bind {typeof(T).Name} to {bindingContext.ModelType.Name} for {bindingContext.FieldName} due to a type mismatch occuring in request method: '{bindingContext.ActionContext.ActionDescriptor.DisplayName}'. [FromAuth<{GetType().Name}>] should be bound on a {typeof(T).Name} instead of {bindingContext.ModelType.Name}");
         }
 
         return Task.CompletedTask;
