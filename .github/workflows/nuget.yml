@@ -26,7 +26,7 @@ jobs:
       run: dotnet build --configuration Release --no-restore
 
     - name: Pack the project
-      run: dotnet pack src/AuthProvider --configuration Release --no-build --output ./nupkg
+      run: dotnet pack AuthProvider/ --configuration Release --no-build --output ./nupkg
 
     - name: Publish to GitHub Packages
       run: dotnet nuget push ./nupkg/*.nupkg --source "github" --api-key ${{ secrets.GITHUB_TOKEN }}
