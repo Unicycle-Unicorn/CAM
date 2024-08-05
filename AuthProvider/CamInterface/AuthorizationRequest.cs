@@ -2,14 +2,15 @@
 
 public class AuthorizationRequest
 {
-    public AuthRequestType AuthRequestType;
+    public AuthRequestType AuthRequestType { get; set; }
 
-    public string? ApiKey;
-    public string? Username;
-    public string? Password;
-    public string? SessionId;
+    public string? ApiKey { get; set; }
+    public string? Username { get; set; }
+    public string? Password { get; set; }
+    public string? SessionId { get; set; }
 
     private AuthorizationRequest(AuthRequestType type) => AuthRequestType = type;
+    public AuthorizationRequest() { }
 
     public static AuthorizationRequest WithApiKey(string apiKey) => new(AuthRequestType.ApiKey) { ApiKey = apiKey };
     public static AuthorizationRequest WithCredentials(string username, string password) => new(AuthRequestType.Credentials) { Username = username, Password = password };

@@ -27,7 +27,7 @@ public class InternalController(ICredentialStore credentialStore) : ControllerBa
         return Ok();
     }
 
-    [HttpPost("authenticate/{service}")]
+    [HttpPost("{service}")]
     public IActionResult Authenticate([FromBody] AuthorizationRequest authRequest, [FromRoute] string service)
     {
         switch (authRequest.AuthRequestType)
@@ -49,7 +49,7 @@ public class InternalController(ICredentialStore credentialStore) : ControllerBa
         return Ok(AuthorizationResult.Failed());
     }
 
-    [HttpPost("authorize/{service}/{permission}")]
+    [HttpPost("{service}/{permission}")]
     public IActionResult Authorize([FromBody] AuthorizationRequest authRequest, [FromRoute] string service, [FromRoute] string permission)
     {
         var permissionGroup = (service, permission);

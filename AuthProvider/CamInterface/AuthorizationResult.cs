@@ -2,11 +2,11 @@
 
 public class AuthorizationResult
 {
-    public bool IsAuthenticated { get; protected set; }
-    public bool IsAuthorized { get; protected set; }
-    public (string service, string permission)? Permission { get; protected set; }
-    public Guid? UserId { get; protected set; }
-    public string? Username { get; protected set; }
+    public bool IsAuthenticated { get; set; }
+    public bool IsAuthorized { get; set; }
+    public (string service, string permission)? Permission { get; set; }
+    public Guid? UserId { get; set; }
+    public string? Username { get; set; }
 
     public static AuthorizationResult Failed()
     {

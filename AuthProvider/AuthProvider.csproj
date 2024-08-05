@@ -7,7 +7,7 @@
     <PackAsTool>False</PackAsTool>
     <IncludeSymbols>True</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-	<Version>1.0.2</Version>
+	<Version>1.0.4</Version>
   </PropertyGroup>
 
   <ItemGroup>
