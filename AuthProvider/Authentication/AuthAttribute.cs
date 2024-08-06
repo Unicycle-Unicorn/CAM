@@ -15,7 +15,7 @@ namespace AuthProvider;
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
 public abstract class AuthAttribute : Attribute, IActionPrecheckAttribute, IAsyncAuthorizationFilter
 {
-    protected readonly string? Permission;
+    public readonly string? Permission;
     protected readonly bool WithPermission;
 
     public AuthAttribute()

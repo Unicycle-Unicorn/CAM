@@ -6,6 +6,7 @@ using AuthProvider.Utils;
 using CredentialsAccessManager.Credentials;
 using CredentialsAccessManager.Credentials.CredentialStore;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Routing;
 
 /*
 <> stands for authentication, string inside is the Permission nessesary
@@ -56,11 +57,11 @@ public class UserController(ILogger<UserController> logger, ICamInterface camInt
             return Conflict();
         }
     }
-    
+
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [Auth<CredentialAuth>(Permission.LOGIN)]
-    public void Login([FromAuth<AuthUserId>] Guid userId, [FromAuth<AuthType>] string type, [FromAuth<AuthUsername>] string username)
+    public IActionResult Login([FromAuth<AuthUserId>] Guid userId, [FromAuth<AuthType>] string type, [FromAuth<AuthUsername>] string username)
     {
         string sessionId = CredentialStore.CreateNewSession(userId).Output;
 
@@ -74,6 +75,8 @@ public class UserController(ILogger<UserController> logger, ICamInterface camInt
 
         // Set the user's Session token
         CookieUtils.SetCookie(HttpContext.Response, CookieUtils.Session, sessionId, CookieUtils.SecureCookieOptions);
+
+        return Ok();
     }
 
     [HttpPost]

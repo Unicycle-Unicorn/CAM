@@ -3,11 +3,16 @@ using AuthProvider.CamInterface;
 using AuthProvider.Exceptions;
 using AuthProvider.RuntimePrecheck;
 using AuthProvider.Swagger;
+using AuthProvider.Utils;
 using CredentialsAccessManager.CamInterface;
+using CredentialsAccessManager.Controllers;
 using CredentialsAccessManager.Credentials;
 using CredentialsAccessManager.Credentials.CredentialStore;
 using CredentialsAccessManager.Credentials.IdGenerators;
 using CredentialsAccessManager.Credentials.PasswordHashing;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.Net.Http.Headers;
+using System.Net;
 
 namespace CredentialsAccessManager;
 
@@ -26,9 +31,19 @@ public class Program
         _ = builder.Services.AddSwaggerGen(config => config.OperationFilter<SwaggerAuth>());
 
         _ = builder.Services.AddAuthentication(NullAuthenticationHandler.RegisterWithBuilder);
-        
+
         _ = builder.Services.AddExceptionHandler<UuidExceptionHandler>();
         _ = builder.Services.AddProblemDetails();
+
+        const string CorsAllowAll = "CorsAllowAll";
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy(CorsAllowAll, builder =>
+            {
+                builder.WithOrigins("http://localhost:8080").AllowAnyMethod().AllowAnyHeader().AllowCredentials()
+                .WithExposedHeaders(HeaderUtils.XExceptionCode);
+            });
+        });
 
         //builder.Services.AddSingleton(typeof(ICamInterface), new RemoteCamInterface("cam", "https://api.unicycleunicorn.net/cam"));
         var credentialStore = new CredentialStore(new()
@@ -49,6 +64,7 @@ public class Program
                 IdLengthBytes = 8
             })
         });
+
         _ = builder.Services.AddSingleton(typeof(ICredentialStore), credentialStore);
         var camService = new LocalCamInterface("cam", credentialStore);
         _ = builder.Services.AddSingleton(typeof(ICamInterface), camService);
@@ -57,6 +73,7 @@ public class Program
 
         // First thing we want to do is run a check of all actions everywhere to find possible issues
         RuntimePrechecker.RunPrecheck(app);
+        
 
         // Configure the HTTP request pipeline.
 
@@ -67,10 +84,15 @@ public class Program
         }
 
         _ = app.UseAuthorization();
+
+        app.UseCors(CorsAllowAll);
+
         _ = app.UseExceptionHandler();
         _ = app.MapControllers();
 
         await camService.Initialize();
+
+        
 
         app.Run();
     }

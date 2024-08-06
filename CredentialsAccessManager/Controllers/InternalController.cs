@@ -12,21 +12,6 @@ public class InternalController(ICredentialStore credentialStore) : ControllerBa
 {
     private readonly ICredentialStore CredentialStore = credentialStore;
 
-    [HttpGet]
-    public IActionResult TestKnownError()
-    {
-        throw new NotImplementedException();
-        return Ok();
-    }
-
-    [HttpGet]
-    [AuthAttribute<SessionAuth>]
-    public IActionResult TestSessioned([FromAuth<AuthSessionId>] string sessionId)
-    {
-        Console.WriteLine($"Session Id: {sessionId}");
-        return Ok();
-    }
-
     [HttpPost("{service}")]
     public IActionResult Authenticate([FromBody] AuthorizationRequest authRequest, [FromRoute] string service)
     {
