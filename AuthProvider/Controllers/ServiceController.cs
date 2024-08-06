@@ -2,8 +2,9 @@ using AuthProvider;
 using AuthProvider.CamInterface;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Controllers;
+using Microsoft.AspNetCore.Routing;
 
-namespace CredentialsAccessManager.Controllers;
+namespace AuthProvider.Controllers;
 [ApiController]
 [Route("[controller]/[action]")]
 public class ServiceController(IEnumerable<EndpointDataSource> endpointSources, ICamInterface camInterface) : ControllerBase
@@ -25,7 +26,7 @@ public class ServiceController(IEnumerable<EndpointDataSource> endpointSources, 
             Metadata = BuildEndpointMetadata(endpoints);
         }
 
-        
+
 
         return Ok(Metadata);
     }
@@ -60,15 +61,15 @@ public class ServiceController(IEnumerable<EndpointDataSource> endpointSources, 
             if (result.TryGetValue(item.ControllerName, out var actions))
             {
                 if (actions.TryGetValue(item.ActionName, out var list))
-                {
                     list.Add(item.Action);
-                } else
+                else
                 {
                     actions.Add(item.ActionName, [item.Action]);
                 }
-            } else
+            }
+            else
             {
-                result.Add(item.ControllerName, new Dictionary<string, List<object>>() {{ item.ActionName, [item.Action] }});
+                result.Add(item.ControllerName, new Dictionary<string, List<object>>() { { item.ActionName, [item.Action] } });
             }
         }
 
