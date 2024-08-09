@@ -20,34 +20,8 @@ public class Program
 {
     public async static Task Main(string[] args)
     {
-        WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+        WebApplicationBuilder builder = WebApplicationUtils.Initialize(args);
 
-        // Add services to the container.
-        _ = builder.Services.AddControllers();
-
-        // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-        _ = builder.Services.AddEndpointsApiExplorer();
-
-        _ = builder.Services.AddSwaggerGen(config => config.OperationFilter<SwaggerAuth>());
-
-        _ = builder.Services.AddAuthentication(NullAuthenticationHandler.RegisterWithBuilder);
-
-        _ = builder.Services.AddExceptionHandler<UuidExceptionHandler>();
-        _ = builder.Services.AddProblemDetails();
-
-        const string CorsAllowAll = "CorsAllowAll";
-        if (builder.Environment.IsDevelopment())
-        {
-            _ = builder.Services.AddCors(options =>
-            {
-                options.AddPolicy(CorsAllowAll, builder =>
-                {
-                    _ = builder.WithOrigins("http://localhost:8080").AllowAnyMethod().AllowAnyHeader().AllowCredentials().WithExposedHeaders(HeaderUtils.XExceptionCode);
-                });
-            });
-        }
-
-        //builder.Services.AddSingleton(typeof(ICamInterface), new RemoteCamInterface("cam", "https://api.unicycleunicorn.net/cam"));
         var credentialStore = new CredentialStore(new()
         {
             DefaultUserPermissions = new Permissions(new() {
@@ -71,34 +45,6 @@ public class Program
         var camService = new LocalCamInterface("cam", credentialStore);
         _ = builder.Services.AddSingleton(typeof(ICamInterface), camService);
 
-        WebApplication app = builder.Build();
-
-        // First thing we want to do is run a check of all actions everywhere to find possible issues
-        RuntimePrechecker.RunPrecheck(app);
-        
-
-        // Configure the HTTP request pipeline.
-
-        if (app.Environment.IsDevelopment())
-        {
-            _ = app.UseSwagger();
-            _ = app.UseSwaggerUI();
-        }
-
-        _ = app.UseAuthorization();
-
-        if (app.Environment.IsDevelopment())
-        {
-            _ = app.UseCors(CorsAllowAll);
-        }
-
-        _ = app.UseExceptionHandler();
-        _ = app.MapControllers();
-
-        await camService.Initialize();
-
-        
-
-        app.Run();
+         await WebApplicationUtils.Start(builder);
     }
 }
