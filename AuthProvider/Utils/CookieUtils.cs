@@ -17,7 +17,7 @@ public static class CookieUtils
 
     public static readonly CookieOptions ScriptableCookieOptions = new()
     {
-        //Domain = "api.unicycleunicorn.net",
+        Domain = ".unicycleunicorn.net",
         HttpOnly = false,
         IsEssential = true,
         Secure = true,
