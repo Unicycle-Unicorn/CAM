@@ -7,3 +7,9 @@ on:
 jobs:
   build_and_push_image:
     uses: Unicycle-Unicorn/CICD/.github/workflows/docker-build-push.yml@main
+  ssh_droplet_update:
+    needs: build_and_push_image
+    uses: Unicycle-Unicorn/CICD/.github/workflows/droplet-ssh-pull-up.yml@main
+    with:
+      services: 'notes'
+    secrets: inherit
