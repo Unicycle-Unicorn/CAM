@@ -36,14 +36,16 @@ public class Program
         _ = builder.Services.AddProblemDetails();
 
         const string CorsAllowAll = "CorsAllowAll";
-        builder.Services.AddCors(options =>
+        if (builder.Environment.IsDevelopment())
         {
-            options.AddPolicy(CorsAllowAll, builder =>
-            { // http://localhost:8080
-                builder.WithOrigins("https://ui.unicycleunicorn.net").AllowAnyMethod().AllowAnyHeader().AllowCredentials()
-                .WithExposedHeaders(HeaderUtils.XExceptionCode);
+            _ = builder.Services.AddCors(options =>
+            {
+                options.AddPolicy(CorsAllowAll, builder =>
+                {
+                    _ = builder.WithOrigins("http://localhost:8080").AllowAnyMethod().AllowAnyHeader().AllowCredentials().WithExposedHeaders(HeaderUtils.XExceptionCode);
+                });
             });
-        });
+        }
 
         //builder.Services.AddSingleton(typeof(ICamInterface), new RemoteCamInterface("cam", "https://api.unicycleunicorn.net/cam"));
         var credentialStore = new CredentialStore(new()
@@ -85,7 +87,10 @@ public class Program
 
         _ = app.UseAuthorization();
 
-        app.UseCors(CorsAllowAll);
+        if (app.Environment.IsDevelopment())
+        {
+            _ = app.UseCors(CorsAllowAll);
+        }
 
         _ = app.UseExceptionHandler();
         _ = app.MapControllers();
