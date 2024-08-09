@@ -39,8 +39,8 @@ public class Program
         builder.Services.AddCors(options =>
         {
             options.AddPolicy(CorsAllowAll, builder =>
-            {
-                builder.WithOrigins("http://localhost:8080").AllowAnyMethod().AllowAnyHeader().AllowCredentials()
+            { // http://localhost:8080
+                builder.WithOrigins("https://ui.unicycleunicorn.net/").AllowAnyMethod().AllowAnyHeader().AllowCredentials()
                 .WithExposedHeaders(HeaderUtils.XExceptionCode);
             });
         });
