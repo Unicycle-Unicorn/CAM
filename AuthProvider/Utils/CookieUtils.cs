@@ -9,18 +9,20 @@ public static class CookieUtils
 
     public static readonly CookieOptions SecureCookieOptions = new()
     {
-        //Domain = "api.unicycleunicorn.net",
+        Domain = "api.unicycleunicorn.net",
         HttpOnly = true,
         IsEssential = true,
         Secure = true,
+        Path = "/",
     };
 
     public static readonly CookieOptions ScriptableCookieOptions = new()
     {
-        Domain = ".unicycleunicorn.net",
+        Domain = "ui.unicycleunicorn.net",
         HttpOnly = false,
         IsEssential = true,
         Secure = true,
+        Path = "/",
     };
 
     public static bool TryGetCookie(HttpRequest request, string name, [NotNullWhen(true)] out string? result)
