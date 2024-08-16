@@ -58,9 +58,9 @@ public class UserController(ILogger<UserController> logger, ICamInterface camInt
         }
     }
 
-    [HttpPost]
+    [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public IActionResult UsernameAvailable([FromBody] string username)
+    public IActionResult UsernameAvailable([FromQuery] string username)
     {
         UserActionResult<Guid> result = CredentialStore.GetUserIdFromUsername(username);
         
