@@ -60,6 +60,16 @@ public class UserController(ILogger<UserController> logger, ICamInterface camInt
 
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    public IActionResult UsernameAvailable([FromBody] string username)
+    {
+        UserActionResult<Guid> result = CredentialStore.GetUserIdFromUsername(username);
+        
+        return Ok(!result.FoundUser);
+    }
+
+
+    [HttpPost]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     [Auth<CredentialAuth>(Permission.LOGIN)]
     public IActionResult Login([FromAuth<AuthUserId>] Guid userId, [FromAuth<AuthType>] string type, [FromAuth<AuthUsername>] string username)
     {
