@@ -73,7 +73,17 @@ public class UserController(ILogger<UserController> logger, ICamInterface camInt
     [Auth<CredentialAuth>(Permission.LOGIN)]
     public IActionResult Login([FromAuth<AuthUserId>] Guid userId, [FromAuth<AuthType>] string type, [FromAuth<AuthUsername>] string username)
     {
-        string sessionId = CredentialStore.CreateNewSession(userId).Output;
+	//TODO: Get Client's Ip Address
+	
+	_ = HeaderUtils.TryGetHeader(HttpContext.Request, "HTTP_X_FORWARDED_FOR", out string? ipAddr);
+	Logger.LogInformation($"FORWARDED: {ipAddr}");
+
+	_ = HeaderUtils.TryGetHeader(HttpContext.Request, "REMOTE_ADDR", out string? remote);
+	Logger.LogInformation($"REMOTE: {remote}");
+
+	
+	string clientIpAddress = "192.168.0.0";
+        string sessionId = CredentialStore.CreateNewSession(userId, clientIpAddress).Output;
 
         // Shouldn't fail here unless something went horribly wrong
         _ = CSRFUtils.TryGenerateCSRF(sessionId, out string csrf);

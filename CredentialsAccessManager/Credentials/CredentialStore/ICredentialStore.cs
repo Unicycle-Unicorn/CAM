@@ -28,7 +28,7 @@ public interface ICredentialStore
 
 
     #region Session
-    public UserActionResult<SessionId> CreateNewSession(UserId userId);
+    public UserActionResult<SessionId> CreateNewSession(UserId userId, string clientIpAddress);
     public AuthorizationResult AuthenticateSession(SessionId sessionId);
     public AuthorizationResult AuthorizeSession(SessionId sessionId, SinglePermission permission);
     public AuthorizationResult AuthenticateStrictSession(SessionId sessionId, Password password);
