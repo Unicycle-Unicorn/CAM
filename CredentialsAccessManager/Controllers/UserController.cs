@@ -75,11 +75,11 @@ public class UserController(ILogger<UserController> logger, ICamInterface camInt
     {
 	//TODO: Get Client's Ip Address
 	
-	_ = HeaderUtils.TryGetHeader(HttpContext.Request, "HTTP_X_FORWARDED_FOR", out string? ipAddr);
-	Logger.LogInformation($"FORWARDED: {ipAddr}");
+	_ = HeaderUtils.TryGetHeader(HttpContext.Request, "Host", out string? ipAddr);
+	Logger.LogInformation($"Host: {ipAddr}");
 
-	_ = HeaderUtils.TryGetHeader(HttpContext.Request, "REMOTE_ADDR", out string? remote);
-	Logger.LogInformation($"REMOTE: {remote}");
+	_ = HeaderUtils.TryGetHeader(HttpContext.Request, "X-Real-IP", out string? remote);
+	Logger.LogInformation($"Real Ip: {remote}");
 
 	
 	string clientIpAddress = "192.168.0.0";
