@@ -1,6 +1,6 @@
 ﻿namespace CredentialsAccessManager.Credentials;
 
-public class ActiveSession(long currentTime, long idleExpiryTime, long absoluteExpiryTime)
+public class ActiveSession(long currentTime, long idleExpiryTime, long absoluteExpiryTime, string clientIpAddress)
 {
 
     private static readonly Random random = new();
@@ -12,6 +12,12 @@ public class ActiveSession(long currentTime, long idleExpiryTime, long absoluteE
         }
     }
 
+    /// <summary>
+    ///	Client's initial ip address when session first created.
+    ///	Should be used to prevent session duplication accross the same IP.
+    /// </summary>
+    public string InitialSessionIp { get; set; } = clientIpAddress;
+    
     /// <summary>
     /// Creation time of this Session
     /// </summary>

@@ -101,11 +101,11 @@ public class CredentialStore : ICredentialStore
 
 
     #region Session
-    public UserActionResult<SessionId> CreateNewSession(UserId userId)
+    public UserActionResult<SessionId> CreateNewSession(UserId userId, string clientIpAddress)
     {
         (string userCompatibleId, byte[] databaseCompatibleId) = Configuration.SessionIdGenerator.GenerateId(userId);
         long currentTime = TimeUtils.GetUnixTime();
-        ActiveSession session = new ActiveSession(currentTime, currentTime + Configuration.SessionIdleTimeoutSeconds, currentTime + Configuration.SessionAbsoluteTimeoutSeconds);
+        ActiveSession session = new ActiveSession(currentTime, currentTime + Configuration.SessionIdleTimeoutSeconds, currentTime + Configuration.SessionAbsoluteTimeoutSeconds, clientIpAddress);
 
         if (UserIdsToUserData.TryGetValue(userId, out UserData? userData) && userData != null)
         {
