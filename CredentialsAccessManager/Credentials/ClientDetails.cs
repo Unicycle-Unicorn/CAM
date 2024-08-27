@@ -38,7 +38,7 @@ public class ClientDetails
 
     public override string ToString() {
 	return $@"Host: {this.Host}
-		Ip: {this.ClientIp}
-		User Agent: {this.UserAgent}";
+	Ip: {this.ClientIp}
+	User Agent: {this.UserAgent}";
     }
 }
