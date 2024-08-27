@@ -73,16 +73,14 @@ public class UserController(ILogger<UserController> logger, ICamInterface camInt
     [Auth<CredentialAuth>(Permission.LOGIN)]
     public IActionResult Login([FromAuth<AuthUserId>] Guid userId, [FromAuth<AuthType>] string type, [FromAuth<AuthUsername>] string username)
     {
-	//TODO: Get Client's Ip Address
-	
 	_ = HeaderUtils.TryGetHeader(HttpContext.Request, "Host", out string? ipAddr);
 	Logger.LogInformation($"Host: {ipAddr}");
 
 	_ = HeaderUtils.TryGetHeader(HttpContext.Request, "X-Real-IP", out string? remote);
 	Logger.LogInformation($"Real Ip: {remote}");
 
-	_ = HeaderUtils.TryGetHeader(HttpContext.Request, "User_Agent", out string? userAgent);
-	Logger.LogInfo($"User Agent: {userAgent}");
+	_ = HeaderUtils.TryGetHeader(HttpContext.Request, "User_Agent", out object userAgent);
+	Logger.LogInformation($"User Agent: {userAgent}");
 
 	string clientIpAddress = "192.168.0.0";
         string sessionId = CredentialStore.CreateNewSession(userId, clientIpAddress).Output;
