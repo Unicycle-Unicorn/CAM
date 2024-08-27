@@ -113,6 +113,21 @@ public class UserController(ILogger<UserController> logger, ICamInterface camInt
         CookieUtils.RemoveCookie(HttpContext.Response, CookieUtils.Session);
         return Ok();
     }
+
+    [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [Auth<SessionAuth>]
+    public IActionResult GetActiveSessions([FromAuth<AuthUserId>] Guid userId, [FromAuth<AuthSessionId>] string sessionId) {
+	UserActionResult<List<ActiveSession>> result = CredentialStore.GetAllSessions(userId);
+	if (result.OperationSuccess) {
+		Logger.LogInformation($"Retrieved Active Sessions: {result.Output}");
+		return Ok(result.Output);
+	} else {
+		Logger.LogInformation("could not retrieve user's session information");
+		return Ok();
+	}
+    }
+
     /*
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
