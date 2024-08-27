@@ -76,8 +76,7 @@ public class UserController(ILogger<UserController> logger, ICamInterface camInt
 	var clientDetails = ClientDetails.FromHttpContext(HttpContext);
 	Logger.LogInformation($"Client Details: {clientDetails}");
 
-	string clientIpAddress = "192.168.0.0";
-        string sessionId = CredentialStore.CreateNewSession(userId, clientIpAddress).Output;
+        string sessionId = CredentialStore.CreateNewSession(userId, clientDetails).Output;
 
         // Shouldn't fail here unless something went horribly wrong
         _ = CSRFUtils.TryGenerateCSRF(sessionId, out string csrf);
