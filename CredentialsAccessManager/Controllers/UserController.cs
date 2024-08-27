@@ -132,6 +132,14 @@ public class UserController(ILogger<UserController> logger, ICamInterface camInt
 	}
     }
 
+[HttpGet("GetPermissions/[service]")]
+[ProducesResponseType(StatusCodes.Status200OK)]
+[Auth<SessionAuth>]
+public IActionResult GetPermissions([FromAuth<AuthSessionId>] string sessionId, [FromRoute] string service) {
+	Logger.LogInformation($"Retrieve permissions for {service}");
+	return Ok();
+}
+
     /*
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -147,11 +155,6 @@ public class UserController(ILogger<UserController> logger, ICamInterface camInt
     [ProducesResponseType(StatusCodes.Status200OK)]
     [Auth(Permission.WRITE_SELF)]
     public IActionResult UpdateUserInfo() => throw new NotImplementedException();
-
-    [HttpPost]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [Auth(Permission.READ_SELF)]
-    public IActionResult GetActiveSessions() => throw new NotImplementedException();
 
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
