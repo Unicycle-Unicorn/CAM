@@ -132,10 +132,11 @@ public class UserController(ILogger<UserController> logger, ICamInterface camInt
 	}
     }
 
-[HttpGet("GetPermissions/{service}")]
+[HttpGet]
+[Route("GetPermissions/{service}")]
 [ProducesResponseType(StatusCodes.Status200OK)]
 [Auth<SessionAuth>]
-public IActionResult GetPermissions([FromAuth<AuthSessionId>] string sessionId, [FromRoute] string service) {
+public IActionResult GetPermissions([FromAuth<AuthSessionId>] string sessionId, string service) {
 	Logger.LogInformation($"Retrieve permissions for {service}");
 	return Ok();
 }
