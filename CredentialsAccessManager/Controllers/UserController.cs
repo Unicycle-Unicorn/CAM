@@ -79,7 +79,7 @@ public class UserController(ILogger<UserController> logger, ICamInterface camInt
 	_ = HeaderUtils.TryGetHeader(HttpContext.Request, "X-Real-IP", out string? remote);
 	Logger.LogInformation($"Real Ip: {remote}");
 
-	_ = HeaderUtils.TryGetHeader(HttpContext.Request, "User_Agent", out string? userAgent);
+	_ = HeaderUtils.TryGetHeader(HttpContext.Request, "User-Agent", out string? userAgent);
 	Logger.LogInformation($"User Agent: {userAgent}");
 
 	string clientIpAddress = "192.168.0.0";
