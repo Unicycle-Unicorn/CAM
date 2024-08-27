@@ -340,7 +340,7 @@ public class CredentialStore : ICredentialStore
                 if (userData.Sessions != null)
                 {
 		   	if (userData.Sessions.TryGetValue(parsedId.Value.databaseCompatibleId, out ActiveSession? activeSession)) {
-		   		return UserActionResult.Successful(activeSession.InternalSessionId);
+		   		return UserActionResult<int>.Successful(activeSession.InternalSessionId);
 		   	}
                 }
 
