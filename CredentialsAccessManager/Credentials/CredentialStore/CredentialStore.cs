@@ -1,5 +1,6 @@
 ﻿using AuthProvider.CamInterface;
 using CredentialsAccessManager.Utils;
+using CredentialsAccessManager.Credentials;
 using System.Collections.Concurrent;
 using ApiKeyId = string;
 using HashedApiKeyId = byte[];
@@ -101,11 +102,11 @@ public class CredentialStore : ICredentialStore
 
 
     #region Session
-    public UserActionResult<SessionId> CreateNewSession(UserId userId, string clientIpAddress)
+    public UserActionResult<SessionId> CreateNewSession(UserId userId, ClientDetails clientDetails)
     {
         (string userCompatibleId, byte[] databaseCompatibleId) = Configuration.SessionIdGenerator.GenerateId(userId);
         long currentTime = TimeUtils.GetUnixTime();
-        ActiveSession session = new ActiveSession(currentTime, currentTime + Configuration.SessionIdleTimeoutSeconds, currentTime + Configuration.SessionAbsoluteTimeoutSeconds, clientIpAddress);
+        ActiveSession session = new ActiveSession(currentTime, currentTime + Configuration.SessionIdleTimeoutSeconds, currentTime + Configuration.SessionAbsoluteTimeoutSeconds, clientDetails);
 
         if (UserIdsToUserData.TryGetValue(userId, out UserData? userData) && userData != null)
         {

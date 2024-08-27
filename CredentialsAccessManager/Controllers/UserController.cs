@@ -73,17 +73,10 @@ public class UserController(ILogger<UserController> logger, ICamInterface camInt
     [Auth<CredentialAuth>(Permission.LOGIN)]
     public IActionResult Login([FromAuth<AuthUserId>] Guid userId, [FromAuth<AuthType>] string type, [FromAuth<AuthUsername>] string username)
     {
-	_ = HeaderUtils.TryGetHeader(HttpContext.Request, "Host", out string? ipAddr);
-	Logger.LogInformation($"Host: {ipAddr}");
+	var clientDetails = ClientDetails.FromHttpContext(HttpContext);
+	Logger.LogInformation($"Client Details: {clientDetails}");
 
-	_ = HeaderUtils.TryGetHeader(HttpContext.Request, "X-Real-IP", out string? remote);
-	Logger.LogInformation($"Real Ip: {remote}");
-
-	_ = HeaderUtils.TryGetHeader(HttpContext.Request, "User-Agent", out string? userAgent);
-	Logger.LogInformation($"User Agent: {userAgent}");
-
-	string clientIpAddress = "192.168.0.0";
-        string sessionId = CredentialStore.CreateNewSession(userId, clientIpAddress).Output;
+        string sessionId = CredentialStore.CreateNewSession(userId, clientDetails).Output;
 
         // Shouldn't fail here unless something went horribly wrong
         _ = CSRFUtils.TryGenerateCSRF(sessionId, out string csrf);
