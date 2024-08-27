@@ -1,4 +1,5 @@
 ﻿using AuthProvider.CamInterface;
+using CredentialsAccessManager.Credentials;
 using ApiKeyId = string;
 using Password = string;
 using SessionId = string;
@@ -28,7 +29,7 @@ public interface ICredentialStore
 
 
     #region Session
-    public UserActionResult<SessionId> CreateNewSession(UserId userId, string clientIpAddress);
+    public UserActionResult<SessionId> CreateNewSession(UserId userId, ClientDetails clientDetails);
     public AuthorizationResult AuthenticateSession(SessionId sessionId);
     public AuthorizationResult AuthorizeSession(SessionId sessionId, SinglePermission permission);
     public AuthorizationResult AuthenticateStrictSession(SessionId sessionId, Password password);
