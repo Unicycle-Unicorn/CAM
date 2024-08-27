@@ -344,11 +344,11 @@ public class CredentialStore : ICredentialStore
 		   	}
                 }
 
-                return UserActionResult.Unsuccessful();
+                return UserActionResult<int>.Unsuccessful();
             }
         }
 
-        return UserActionResult.UserNotFound();
+        return UserActionResult<int>.UserNotFound();
     }
     
     public UserActionResult<List<ActiveSession>> GetAllSessions(UserId userId)
