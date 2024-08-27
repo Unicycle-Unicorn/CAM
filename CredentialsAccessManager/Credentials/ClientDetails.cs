@@ -30,10 +30,10 @@ public class ClientDetails
     /// <summary>
     /// Generates the client details from the HttpContext
     public static ClientDetails FromHttpContext(HttpContext context) {
-	_ = HeaderUtils.TryGetHeader(context.Request, "Host", out string? ipAddr);
-	_ = HeaderUtils.TryGetHeader(context.Request, "X-Real-IP", out string? remote);
+	_ = HeaderUtils.TryGetHeader(context.Request, "Host", out string? host);
+	_ = HeaderUtils.TryGetHeader(context.Request, "X-Real-IP", out string? ip);
 	_ = HeaderUtils.TryGetHeader(context.Request, "User-Agent", out string? userAgent);
-	return new ClientDetails(ipAddr, remote, userAgent);
+	return new ClientDetails(ip, host, userAgent);
     }
 
     public override string ToString() {
