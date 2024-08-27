@@ -330,6 +330,27 @@ public class CredentialStore : ICredentialStore
 
         return UserActionResult.UserNotFound();
     }
+    
+    public UserActionResult<int> GetSessionInternalId(SessionId sessionId)
+    {
+    	if (Configuration.SessionIdGenerator.TryParseId(sessionId, out (UserId userId, HashedSessionId databaseCompatibleId)? parsedId) && parsedId.HasValue)
+        {
+            if (UserIdsToUserData.TryGetValue(parsedId.Value.userId, out UserData? userData) && userData != null)
+            {
+                if (userData.Sessions != null)
+                {
+		   	if (userData.Sessions.TryGetValue(parsedId.Value.databaseCompatibleId, out ActiveSession? activeSession)) {
+		   		return UserActionResult.Successful(activeSession.InternalSessionId);
+		   	}
+                }
+
+                return UserActionResult.Unsuccessful();
+            }
+        }
+
+        return UserActionResult.UserNotFound();
+    }
+    
     public UserActionResult<List<ActiveSession>> GetAllSessions(UserId userId)
     {
         if (UserIdsToUserData.TryGetValue(userId, out UserData? userData) && userData != null)

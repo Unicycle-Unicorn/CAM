@@ -119,9 +119,13 @@ public class UserController(ILogger<UserController> logger, ICamInterface camInt
     [Auth<SessionAuth>]
     public IActionResult GetActiveSessions([FromAuth<AuthUserId>] Guid userId, [FromAuth<AuthSessionId>] string sessionId) {
 	UserActionResult<List<ActiveSession>> result = CredentialStore.GetAllSessions(userId);
-	if (result.OperationSuccess) {
-		Logger.LogInformation($"Retrieved Active Sessions: {result.Output}");
-		return Ok(result.Output);
+	UserActionResult<int> currentSessionResult = CredentialStore.GetSessionInternalId(sessionId);
+	if (result.OperationSuccess && currentSessionResult.OperationSuccess) {
+		Logger.LogInformation($"Retrieved Active Sessions");
+		return Ok(new {
+			ActiveSessions = result.Output,
+			CurrentSession = currentSessionResult.Output
+		});
 	} else {
 		Logger.LogInformation("could not retrieve user's session information");
 		return Ok();

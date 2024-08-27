@@ -37,6 +37,7 @@ public interface ICredentialStore
     public UserActionResult RevokeSessionBySessionId(SessionId sessionId);
     public UserActionResult RevokeSessionBySessionInternalId(UserId userId, int internalSessionId);
     public UserActionResult RevokeAllSessions(UserId userId);
+    public UserActionResult<int> GetSessionInternalId(SessionId sessionId);
     public UserActionResult<List<ActiveSession>> GetAllSessions(UserId userId);
     #endregion
 
